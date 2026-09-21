@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RideLab">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ridelab-icon.svg" type="image/svg+xml">
+<title>RideLab — Bike Training Tracker</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2e; --panel2:#172139; --line:#273452;
+    --text:#edf3ff; --muted:#8fa2c5; --accent:#4dd2c4; --accent2:#7aa8ff;
+    --good:#55d68b; --warn:#f1c75b; --bad:#ff7b86; --input:#0e1628;
+    --shadow:0 16px 40px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  body{margin:0; min-height:100vh; background:
+      radial-gradient(circle at 15% 0%, rgba(77,210,196,.12), transparent 28%),
+      radial-gradient(circle at 85% 0%, rgba(122,168,255,.10), transparent 26%),
+      var(--bg)}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1500px;margin:auto;padding:22px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#08111f;font-weight:900;box-shadow:0 8px 30px rgba(77,210,196,.2)}
+  .brand h1{font-size:22px;margin:0;letter-spacing:.2px}.brand small{color:var(--muted)}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 14px;border-radius:12px;font-weight:700}
+  .btn:hover{background:var(--panel2)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#62e2b0);color:#07131b;border:0}
+  .btn.secondary{background:linear-gradient(135deg,#7297ff,#80b4ff);color:#08111f;border:0}
+  .btn.ghost{background:transparent}
+  .btn.danger{color:#ffd8dc;border-color:#5d2c37}
+  .nav{display:flex;gap:8px;margin:12px 0 22px;overflow:auto;padding-bottom:2px}
+  .tab{white-space:nowrap;border:1px solid var(--line);background:rgba(18,26,46,.72);color:var(--muted);padding:9px 13px;border-radius:999px;font-weight:700}
+  .tab.active{color:#08111f;border-color:transparent;background:var(--accent)}
+  .page{display:none}.page.active{display:block}
+  .grid{display:grid;gap:14px}.grid.kpi{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card{background:linear-gradient(180deg,rgba(23,33,57,.96),rgba(16,24,43,.96));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+  .card h2,.card h3{margin:0 0 12px}.card h2{font-size:17px}.card h3{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+  .kpi .card{min-height:128px}.metric{font-size:31px;font-weight:850;letter-spacing:-.8px}.metric-sub{color:var(--muted);font-size:13px;margin-top:5px}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 10px}
+  .section-title h2{font-size:18px;margin:0}.section-title span{color:var(--muted);font-size:13px}
+  .progress-wrap{margin:10px 0 14px}.progress-row{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:6px}
+  .progress{height:8px;border-radius:999px;background:#0b1324;overflow:hidden;border:1px solid #243252}.bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0}
+  .pb-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .pb{padding:12px;border-radius:14px;background:#0f172a;border:1px solid #22304c}
+  .pb .label{font-size:12px;color:var(--muted)}.pb .value{font-size:19px;font-weight:800;margin-top:5px}
+  .chart{width:100%;height:260px;display:block;background:linear-gradient(180deg,rgba(8,15,29,.5),rgba(8,15,29,.15));border-radius:12px}
+  .chart-legend{color:var(--muted);font-size:12px;margin-top:6px}
+  .toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:12px 0}
+  .toolbar .left,.toolbar .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .input,.select,.textarea{background:var(--input);color:var(--text);border:1px solid #30405f;border-radius:10px;padding:9px 10px;outline:none}
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(77,210,196,.11)}
+  .table-shell{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#0d1526;max-height:68vh}
+  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+  th,td{padding:9px 10px;border-right:1px solid #1f2a43;border-bottom:1px solid #1f2a43;text-align:right;white-space:nowrap;font-size:12.5px}
+  thead th{position:sticky;top:0;z-index:3;background:#18233b;color:#c9d6ee;font-weight:800}
+  thead tr.group th{top:0;background:#10192c;text-align:center;color:#7edfd4;border-bottom:1px solid #324261}
+  thead tr.cols th{top:34px}
+  th:first-child,td:first-child{text-align:left;position:sticky;left:0;z-index:2;background:#0e1729}
+  thead th:first-child{z-index:5;background:#18233b}
+  tbody tr:hover td{background:#121e33}
+  tbody tr:hover td:first-child{background:#15233a}
+  td.text{text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid #344667;background:#14213a;color:#bcd0ef}
+  .pill.indoor{color:#8ef2e5;border-color:#2c665f}.pill.outdoor{color:#a9c6ff;border-color:#3a568e}.pill.rest{color:#e6d6a8;border-color:#6d5b2b}
+  .flag{font-weight:800}.flag.ok{color:var(--good)}.flag.warn{color:var(--warn)}.flag.bad{color:var(--bad)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .empty{padding:36px;text-align:center;color:var(--muted)}
+  .row-actions{display:flex;gap:6px}
+  .iconbtn{padding:5px 8px;border-radius:8px;border:1px solid #30405f;background:#111c31;color:#d7e3f8}.iconbtn.danger{color:#ffd8dc;border-color:#5d2c37}
+  dialog{border:0;padding:0;background:transparent;color:var(--text);width:min(980px,94vw);max-height:90vh}
+  dialog::backdrop{background:rgba(2,6,14,.76);backdrop-filter:blur(4px)}
+  .modal{background:#111a2e;border:1px solid #31415f;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.48);overflow:hidden}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .modal-head h2{margin:0;font-size:18px}
+  .modal-body{padding:18px;max-height:72vh;overflow:auto}
+  .modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
+  .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}
+  .field.span2{grid-column:span 2}.field.span3{grid-column:span 3}.field.span4{grid-column:span 4}
+  .form-section{grid-column:1/-1;margin-top:8px;padding-top:14px;border-top:1px solid var(--line)}
+  .form-section h3{margin:0 0 10px;color:#9ce8de;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+  .helper{font-size:11px;color:var(--muted);line-height:1.45}
+  .notice{padding:10px 12px;border-radius:12px;background:#101a2e;border:1px solid #2b3c5e;color:#b7c7e4;font-size:12px}
+  .settings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--good)}
+  footer{color:#7083a6;text-align:center;font-size:11px;padding:26px 0 10px}
+
+  /* Workout log: useful at a glance, details on demand */
+  #workoutTable{width:100%;min-width:1080px}
+  #workoutTable th,#workoutTable td{padding:11px 10px}
+  #workoutTable thead tr.cols th{top:0}
+  #workoutTable td{vertical-align:middle}
+  #workoutTable td:first-child,#workoutTable th:first-child{position:static}
+  #workoutTable tbody tr.workout-row:hover td{background:#121e33}
+  #workoutTable .notes-cell{max-width:220px;text-align:left;overflow:hidden;text-overflow:ellipsis}
+  .effort{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:850;border:1px solid #344667;background:#14213a}
+  .effort.easy{color:#9ce8de;border-color:#2c665f}.effort.moderate{color:#b9d1ff;border-color:#3a568e}.effort.hard{color:#f5d67d;border-color:#6d5b2b}.effort.all-out{color:#ffb4bb;border-color:#6d3340}
+  .detail-row{display:none}.detail-row.open{display:table-row}.detail-row td{background:#0b1324!important;padding:14px 16px!important;text-align:left!important}
+  .detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .detail-box{border:1px solid #22304c;background:#0f172a;border-radius:12px;padding:11px}
+  .detail-box h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.65px;color:#7edfd4}
+  .detail-list{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:12px}.detail-list span:nth-child(odd){color:var(--muted)}
+  .workout-cards{display:none;gap:10px}
+  .workout-card{background:linear-gradient(180deg,rgba(23,33,57,.96),rgba(16,24,43,.96));border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 28px rgba(0,0,0,.2)}
+  .workout-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .workout-card-title{font-weight:850;font-size:16px}.workout-card-date{font-size:12px;color:var(--muted);margin-top:3px}
+  .workout-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+  .workout-stat{padding:9px;border-radius:11px;background:#0d1526;border:1px solid #22304c;min-width:0}
+  .workout-stat .k{font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:var(--muted)}.workout-stat .v{font-weight:800;font-size:14px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .workout-note{font-size:12px;color:#c4d1e8;line-height:1.45;margin:9px 0 3px}
+  .card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .mobile-details{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}.mobile-details summary{cursor:pointer;color:#b8c9e6;font-size:12px;font-weight:800}
+  .mobile-details .detail-list{margin-top:9px}
+  .mobile-only{display:none}
+  .share-preview{white-space:pre-wrap;margin:0;background:#0b1324;border:1px solid #273452;border-radius:12px;padding:14px;color:#d9e5fa;line-height:1.55;font-size:13px;min-height:94px}
+  .share-choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .share-choice .btn.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(77,210,196,.10)}
+
+  /* App-like Today + cloud sync */
+  .sync-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#0e1729;color:#b9c9e4;padding:8px 11px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+  .sync-pill .dot{width:8px;height:8px;border-radius:50%;background:#6f819e}.sync-pill.synced .dot{background:var(--good)}.sync-pill.syncing .dot{background:var(--warn)}.sync-pill.offline .dot{background:#7183a4}.sync-pill.error .dot{background:var(--bad)}
+  .today-hero{padding:22px;background:linear-gradient(135deg,rgba(77,210,196,.13),rgba(122,168,255,.09) 60%,rgba(23,33,57,.96));border:1px solid #2d4263;border-radius:22px;box-shadow:var(--shadow)}
+  .today-eyebrow{color:#94a9ca;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.75px}.today-hero h2{font-size:32px;letter-spacing:-.9px;margin:7px 0 4px}.today-hero p{margin:0;color:var(--muted)}
+  .today-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.today-actions .btn.primary{padding:12px 18px}
+  .today-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px}.today-metric{background:rgba(8,15,29,.48);border:1px solid #283956;border-radius:14px;padding:12px}.today-metric .k{font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:var(--muted)}.today-metric .v{font-weight:850;font-size:18px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .session-list{display:grid;gap:10px}.session-strip{display:grid;grid-template-columns:minmax(150px,1.2fr) repeat(4,minmax(85px,.7fr)) auto;gap:10px;align-items:center;padding:12px;border:1px solid #25344f;border-radius:14px;background:#0e1729}.session-strip .main{min-width:0}.session-strip .title{font-weight:850}.session-strip .sub{font-size:11px;color:var(--muted);margin-top:3px}.session-strip .stat .k{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}.session-strip .stat .v{font-weight:800;font-size:13px;margin-top:2px}
+  .mini-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mini-summary .box{padding:12px;border-radius:13px;background:#0f172a;border:1px solid #22304c}.mini-summary .box .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}.mini-summary .box .v{font-size:17px;font-weight:850;margin-top:4px}
+  .cloud-card{margin-top:14px}.cloud-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cloud-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.cloud-state{margin-top:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px;border:1px solid #2b3c5e;border-radius:12px;background:#101a2e}.cloud-state b{display:block;margin-bottom:3px}.cloud-state .small{line-height:1.45}
+  .sql-box{white-space:pre;overflow:auto;max-height:42vh;background:#07101e;border:1px solid #273452;border-radius:12px;padding:12px;color:#cddbf2;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .privacy-note{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
+  .desktop-only{display:inline-flex}.install-note{display:none}
+  @media(max-width:1000px){
+    .grid.kpi,.grid.three{grid-template-columns:repeat(2,1fr)} .grid.two{grid-template-columns:1fr}
+    .pb-list{grid-template-columns:repeat(2,1fr)} .form-grid{grid-template-columns:repeat(2,1fr)}
+    .settings{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:640px){
+    .app{padding:14px}.topbar{align-items:flex-start;flex-direction:column}.grid.kpi{grid-template-columns:1fr 1fr}
+    .metric{font-size:25px}.form-grid{grid-template-columns:1fr}.field.span2,.field.span3,.field.span4{grid-column:span 1}
+    .pb-list,.settings{grid-template-columns:1fr 1fr}
+    #workouts .desktop-workouts{display:none}.workout-cards{display:grid}.mobile-only{display:inline-flex}
+    #workouts .toolbar{align-items:stretch}#workouts .toolbar .left{display:grid;grid-template-columns:1fr 1fr;flex:1}#workouts .toolbar .right{width:100%;justify-content:space-between}
+    #workouts .input,#workouts .select{min-width:0;width:100%}.detail-grid{grid-template-columns:1fr}.share-choice{grid-template-columns:1fr}
+    .today-hero{padding:18px}.today-hero h2{font-size:27px}.today-metrics{grid-template-columns:repeat(2,1fr)}.today-metric:last-child{grid-column:span 2}
+    .session-strip{grid-template-columns:1fr auto}.session-strip .stat{display:none}.cloud-grid{grid-template-columns:1fr}.cloud-state{flex-direction:column}.desktop-only{display:none}
+    .nav{position:sticky;top:0;z-index:20;margin:8px -14px 16px;padding:8px 14px;background:rgba(11,16,32,.92);backdrop-filter:blur(12px)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">R</div>
+      <div><h1>RideLab</h1><small>Indoor bike training tracker</small></div>
+    </div>
+    <div class="top-actions">
+      <button class="sync-pill offline" id="syncStatusBtn" type="button" title="Cloud sync"><span class="dot"></span><span id="syncStatusText">Local only</span></button>
+      <button class="btn primary" id="addWorkoutBtn">+ Add Workout</button>
+      <button class="btn secondary" id="outdoorBtn">Outdoor Ride</button>
+      <button class="btn" id="restBtn">Rest Day</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="tab active" data-page="today">Today</button>
+    <button class="tab" data-page="dashboard">Dashboard</button>
+    <button class="tab" data-page="workouts">Workout Log</button>
+    <button class="tab" data-page="daily">Daily</button>
+    <button class="tab" data-page="weekly">Weekly</button>
+    <button class="tab" data-page="data">Settings</button>
+  </div>
+
+  <section class="page active" id="today">
+    <div class="today-hero">
+      <div class="today-eyebrow" id="todayDateLabel">Today</div>
+      <h2 id="todayHeadline">Ready when you are.</h2>
+      <p id="todaySub">No workout logged today.</p>
+      <div class="today-actions">
+        <button class="btn primary" id="todayAddBtn" type="button">+ Add indoor workout</button>
+        <button class="btn" id="todayShareBtn" type="button">Share today</button>
+        <button class="btn ghost" id="todayRestBtn" type="button">Mark rest day</button>
+      </div>
+      <div class="today-metrics">
+        <div class="today-metric"><div class="k">Time</div><div class="v" id="todayTime">0 min</div></div>
+        <div class="today-metric"><div class="k">Distance</div><div class="v" id="todayDistance">0 km</div></div>
+        <div class="today-metric"><div class="k">Bike kcal</div><div class="v" id="todayBikeKcal">0</div></div>
+        <div class="today-metric"><div class="k">Watch active</div><div class="v" id="todayWatchKcal">—</div></div>
+        <div class="today-metric"><div class="k">Avg speed</div><div class="v" id="todaySpeed">—</div></div>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>Today’s sessions</h2><span id="todaySessionCount"></span></div>
+    <div class="session-list" id="todaySessions"></div>
+
+    <div class="section-title"><h2>At a glance</h2><span>This week + last ride</span></div>
+    <div class="grid two">
+      <div class="card"><h3>This week</h3><div class="mini-summary" id="todayWeekSummary"></div></div>
+      <div class="card"><h3>Last workout</h3><div id="lastWorkoutSummary" class="muted small">No workouts yet.</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="dashboard">
+    <div class="grid kpi">
+      <div class="card"><h3>This Week</h3><div class="metric" id="wkMinutes">—</div><div class="metric-sub" id="wkSub">No workouts yet</div></div>
+      <div class="card"><h3>Last 30 Days</h3><div class="metric" id="m30Distance">—</div><div class="metric-sub" id="m30Sub">—</div></div>
+      <div class="card"><h3>All Time</h3><div class="metric" id="allDistance">—</div><div class="metric-sub" id="allSub">—</div></div>
+      <div class="card"><h3>Training Load</h3><div class="metric" id="wkLoad">—</div><div class="metric-sub">This week · RideLab load</div></div>
+    </div>
+
+    <div class="section-title"><h2>Weekly targets</h2><span>Current calendar week</span></div>
+    <div class="card" id="targetsCard"></div>
+
+    <div class="section-title"><h2>Personal bests</h2><span>Based on entered workouts only</span></div>
+    <div class="pb-list" id="pbList"></div>
+
+    <div class="section-title"><h2>Training trends</h2><span>Weeks with actual workouts only</span></div>
+    <div class="grid two">
+      <div class="card"><h3>Weekly distance</h3><canvas class="chart" id="chartDistance"></canvas><div class="chart-legend">km</div></div>
+      <div class="card"><h3>Weekly training minutes</h3><canvas class="chart" id="chartMinutes"></canvas><div class="chart-legend">minutes</div></div>
+      <div class="card"><h3>Weekly calories</h3><canvas class="chart" id="chartCalories"></canvas><div class="chart-legend">Bike kcal · Watch active kcal</div></div>
+      <div class="card"><h3>Training load</h3><canvas class="chart" id="chartLoad"></canvas><div class="chart-legend">RideLab load estimate</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="workouts">
+    <div class="toolbar">
+      <div class="left">
+        <input class="input" id="search" placeholder="Search notes / type">
+        <select class="select" id="sourceFilter"><option value="">All rides</option><option>Indoor</option><option>Outdoor</option></select>
+      </div>
+      <div class="right">
+        <span class="muted small" id="workoutCount"></span>
+        <button class="btn mobile-only" id="shareBtn" type="button">Share</button>
+      </div>
+    </div>
+    <div class="notice" style="margin-bottom:10px">
+      The main log shows the useful stuff. Open <strong>Details</strong> when you want the bike vs Apple Watch comparison and extra console metrics.
+    </div>
+    <div class="table-shell desktop-workouts">
+      <table id="workoutTable">
+        <thead><tr class="cols">
+          <th>Date</th><th>Ride</th><th>Type</th><th>Effort</th><th>Time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Watch HR</th><th>Avg speed</th><th>Match</th><th>Notes</th><th>Actions</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="workout-cards" id="workoutCards"></div>
+  </section>
+
+  <section class="page" id="daily">
+    <div class="table-shell">
+      <table id="dailyTable">
+        <thead><tr class="cols">
+          <th>Date</th><th>Status</th><th>Workouts</th><th>Bike time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Watch total</th><th>RideLab load</th><th>Weighted speed</th><th>Weighted Watch HR</th><th>Actions</th>
+        </tr></thead><tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="page" id="weekly">
+    <div class="table-shell">
+      <table id="weeklyTable">
+        <thead><tr class="cols">
+          <th>Week</th><th>Workouts</th><th>Active days</th><th>Training time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Avg distance</th><th>Avg duration</th><th>Avg calc speed</th><th>RideLab load</th><th>Prev week distance</th><th>WoW distance</th>
+        </tr></thead><tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="page" id="data">
+    <div class="grid two">
+      <div class="card">
+        <h2>Weekly targets</h2>
+        <div class="settings">
+          <div class="field"><label>Workouts</label><input class="input" id="targetWorkouts" type="number" min="0"></div>
+          <div class="field"><label>Active days</label><input class="input" id="targetDays" type="number" min="0"></div>
+          <div class="field"><label>Minutes</label><input class="input" id="targetMinutes" type="number" min="0"></div>
+          <div class="field"><label>Distance km</label><input class="input" id="targetDistance" type="number" min="0" step="0.1"></div>
+          <div class="field"><label>RideLab load</label><input class="input" id="targetLoad" type="number" min="0"></div>
+        </div>
+        <div class="helper" style="margin-top:10px">RideLab load is only a simple trend estimate: workout duration × a representative score for the Apple effort label. It is not Apple’s own Training Load value.</div>
+        <div style="margin-top:12px"><button class="btn primary" id="saveTargets">Save targets</button></div>
+      </div>
+      <div class="card">
+        <h2>Backup & export</h2>
+        <p class="muted small">RideLab always keeps a local copy in this browser. JSON is your portable backup; CSV opens directly in Excel.</p>
+        <div class="top-actions">
+          <button class="btn" id="exportJson">Backup JSON</button>
+          <button class="btn" id="importJsonBtn">Import JSON</button>
+          <button class="btn" id="exportCsv">Export CSV</button>
+          <input id="importJson" type="file" accept=".json,application/json" hidden>
+        </div>
+        <div class="notice" style="margin-top:14px"><span class="status-dot"></span><span id="storageStatus">Local save active</span></div>
+      </div>
+    </div>
+    <div class="card cloud-card">
+      <h2>Cloud sync <span class="pill" id="cloudModePill" style="vertical-align:middle;margin-left:6px">Optional</span></h2>
+      <p class="muted small">RideLab still saves locally first. Once you connect Supabase, each workout, rest day and target setting can sync between your devices.</p>
+      <div class="cloud-grid">
+        <div class="field"><label>Supabase project URL</label><input class="input" id="syncUrl" placeholder="https://xxxxx.supabase.co" autocomplete="off"></div>
+        <div class="field"><label>Publishable / anon key</label><input class="input" id="syncKey" placeholder="sb_publishable_… or anon key" autocomplete="off"></div>
+        <div class="field"><label>Login email</label><input class="input" id="syncEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      </div>
+      <div class="cloud-actions">
+        <button class="btn" id="saveSyncConfig" type="button">Save connection</button>
+        <button class="btn" id="magicLinkBtn" type="button">Email me a sign-in link</button>
+        <button class="btn primary" id="syncNowBtn" type="button">Sync now</button>
+        <button class="btn" id="signOutBtn" type="button">Sign out</button>
+        <button class="btn ghost" id="openSetupBtn" type="button">Database setup</button>
+        <button class="btn ghost" id="installAppBtn" type="button" hidden>Install RideLab</button>
+      </div>
+      <div class="cloud-state">
+        <div><b id="cloudStateTitle">Local only</b><div class="small muted" id="cloudStateDetail">Nothing leaves this browser until you connect Supabase.</div></div>
+        <div class="small muted" id="lastSyncText"></div>
+      </div>
+      <div class="privacy-note">The publishable/anon key is intended for browser apps. Do not paste a Supabase service-role or secret key here. Access to your rows is controlled by login + Row Level Security.</div>
+    </div>
+  </section>
+
+  <footer>RideLab · local-first bike tracker · cloud sync optional</footer>
+</div>
+
+<dialog id="workoutDialog">
+  <form method="dialog" class="modal" id="workoutForm">
+    <div class="modal-head"><h2 id="modalTitle">Add Workout</h2><button class="iconbtn" value="cancel" type="button" id="closeModal">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <div class="field"><label>Date *</label><input class="input" id="fDate" type="date" required></div>
+        <div class="field"><label>Start time</label><input class="input" id="fStart" type="time"></div>
+        <div class="field"><label>Ride</label><select class="select" id="fSource"><option>Indoor</option><option>Outdoor</option></select></div>
+        <div class="field"><label>Effort (Apple Watch)</label><select class="select" id="fEffort"><option value="">Not entered</option><option>Easy</option><option>Moderate</option><option>Hard</option><option>All Out</option></select><div class="helper">Use the label shown by Apple Watch.</div></div>
+        <div class="field"><label>Workout type</label><select class="select" id="fType"><option value="Auto" selected>Auto (recommended)</option><option>Recovery</option><option>Easy</option><option>Endurance</option><option>Tempo</option><option>Intervals</option><option>Free Ride</option><option>Other</option></select><div class="helper" id="fTypeHint">RideLab will keep this simple.</div></div>
+        <div class="field span3"><label>Notes</label><textarea class="textarea" id="fNotes" rows="2" placeholder="Optional · e.g. intervals, sprint session, easy spin"></textarea></div>
+
+        <div class="form-section"><h3>Bike</h3></div>
+        <div class="field"><label>Total time</label><input class="input" id="fBikeTime" placeholder="30:55 or 1:05:20"></div>
+        <div class="field"><label>Distance km</label><input class="input" id="fDistance" type="number" min="0" step="0.01"></div>
+        <div class="field"><label>Bike calories</label><input class="input" id="fBikeKcal" type="number" min="0" step="1"></div>
+        <div class="field"><label>Displayed speed (optional)</label><input class="input" id="fDisplaySpeed" type="number" min="0" step="0.1"></div>
+        <div class="field"><label>Watt (meaningful avg only)</label><input class="input" id="fWatt" type="number" min="0" step="1"></div>
+        <div class="field"><label>Bike pulse (meaningful avg only)</label><input class="input" id="fPulse" type="number" min="0" step="1"></div>
+        <div class="field"><label>RPM (meaningful avg only)</label><input class="input" id="fRpm" type="number" min="0" step="1"></div>
+        <div class="field"><label>Calculated avg speed</label><input class="input" id="fCalcSpeed" readonly placeholder="Calculated"></div>
+        <div class="field span4"><div class="helper">Do not enter stopped-console 0 values for speed, watt, pulse or RPM unless zero is genuinely meaningful workout data. Average speed is calculated from distance ÷ total time.</div></div>
+
+        <div class="form-section"><h3>Apple Watch</h3></div>
+        <div class="field"><label>Total time</label><input class="input" id="fWatchTime" placeholder="30:55 or 1:05:20"></div>
+        <div class="field"><label>Active kcal</label><input class="input" id="fActiveKcal" type="number" min="0" step="1"></div>
+        <div class="field"><label>Total kcal</label><input class="input" id="fTotalKcal" type="number" min="0" step="1"></div>
+        <div class="field"><label>Average HR</label><input class="input" id="fAvgHr" type="number" min="0" step="1"></div>
+        <div class="field"><label>HR minimum</label><input class="input" id="fHrMin" type="number" min="0" step="1"></div>
+        <div class="field"><label>HR maximum</label><input class="input" id="fHrMax" type="number" min="0" step="1"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" id="cancelModal">Cancel</button><button class="btn primary" type="submit">Save workout</button></div>
+  </form>
+</dialog>
+
+
+<dialog id="shareDialog">
+  <div class="modal" style="max-width:520px;margin:auto">
+    <div class="modal-head"><h2>Share workout</h2><button class="iconbtn" type="button" id="closeShare">✕</button></div>
+    <div class="modal-body">
+      <div class="share-choice">
+        <button class="btn active" id="shareLatestChoice" type="button">Latest workout</button>
+        <button class="btn" id="shareTodayChoice" type="button">Today total</button>
+      </div>
+      <pre class="share-preview" id="sharePreview"></pre>
+      <div class="helper" style="margin-top:9px">On a phone, Share opens the system share sheet, so you can pick LINE. If sharing is unavailable, RideLab copies the text instead.</div>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" id="copyShare">Copy</button><button class="btn primary" type="button" id="systemShare">Share</button></div>
+  </div>
+</dialog>
+
+<dialog id="setupDialog">
+  <div class="modal" style="max-width:820px;margin:auto">
+    <div class="modal-head"><h2>Supabase database setup</h2><button class="iconbtn" type="button" id="closeSetup">✕</button></div>
+    <div class="modal-body">
+      <div class="notice" style="margin-bottom:12px">After you create a Supabase project, open its SQL Editor and run this once. When RideLab is hosted, also add its HTTPS address under Authentication → URL Configuration → Redirect URLs. Then enter the project URL + publishable key in RideLab.</div>
+      <pre class="sql-box" id="setupSql"></pre>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" id="copySqlBtn">Copy SQL</button><button class="btn primary" type="button" id="doneSetupBtn">Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="restDialog">
+  <form method="dialog" class="modal" id="restForm" style="max-width:520px;margin:auto">
+    <div class="modal-head"><h2>Rest Day</h2><button class="iconbtn" type="button" id="closeRest">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="field"><label>Date</label><input class="input" id="rDate" type="date" required></div>
+        <div class="field"><label>Note</label><input class="input" id="rNote" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" type="button" id="cancelRest">Cancel</button><button class="btn primary" type="submit">Save rest day</button></div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+  const KEY = 'ridelab_v1';
+  const SYNC_KEY = 'ridelab_sync_v1';
+  const DEFAULT_SYNC_CONFIG = {url:'https://qcfrsavmutsfmoqyojpr.supabase.co', key:'sb_publishable_gNtFk4nZOKlS29CSOo6xWA_i7lVJ08z'};
+  let syncTimer=null, syncInFlight=false, supabaseClient=null, installPrompt=null;
+  const DEFAULTS = {
+    workouts: [{
+      id: 'seed-2026-09-21-1',
+      date: '2026-09-21', startTime: '', source: 'Indoor', type: 'Endurance', typeMode: 'auto', effortLabel: 'Moderate', rpe: null,
+      notes: 'First recorded indoor bike workout',
+      bikeTimeSec: 30*60+55, distanceKm: 15.01, bikeKcal: 512,
+      displayedSpeed: null, watt: null, pulse: null, rpm: null,
+      watchTimeSec: null, activeKcal: null, totalKcal: null, avgHR: null, hrMin: null, hrMax: null,
+      createdAt: '2026-09-21T18:00:00'
+    }],
+    restDays: [],
+    targets: {workouts:4, days:4, minutes:150, distance:60, load:800},
+    deletedWorkouts: {}, deletedRestDays: {}, settingsUpdatedAt: '2026-09-21T18:00:00.000Z'
+  };
+  let state = loadState();
+
+  const $ = id => document.getElementById(id);
+  const qsa = s => [...document.querySelectorAll(s)];
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      const parsed = raw ? JSON.parse(raw) : structuredClone(DEFAULTS);
+      return normalizeState(parsed);
+    }catch(e){ return normalizeState(structuredClone(DEFAULTS)); }
+  }
+  function normalizeState(parsed){
+    return {
+      workouts:(Array.isArray(parsed.workouts)?parsed.workouts:structuredClone(DEFAULTS.workouts)).map(migrateWorkout),
+      restDays:(Array.isArray(parsed.restDays)?parsed.restDays:[]).map(migrateRestDay),
+      targets:{...DEFAULTS.targets,...(parsed.targets||{})},
+      deletedWorkouts:{...(parsed.deletedWorkouts||{})},
+      deletedRestDays:{...(parsed.deletedRestDays||{})},
+      settingsUpdatedAt:parsed.settingsUpdatedAt||DEFAULTS.settingsUpdatedAt
+    };
+  }
+  function saveState(queueSync=true){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    const ss=$('storageStatus'); if(ss) ss.textContent = 'Saved locally · ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    if(queueSync) scheduleCloudSync();
+  }
+  function n(v){ return v===null||v===undefined||v===''?null:Number(v); }
+  function isNum(v){ return v!==null && v!=='' && v!==undefined && Number.isFinite(Number(v)); }
+  function val(v, digits=0, suffix=''){
+    return isNum(v) ? Number(v).toFixed(digits)+suffix : '—';
+  }
+  function fmtDate(iso){
+    if(!iso) return '—';
+    const [y,m,d]=iso.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'});
+  }
+  function fmtShortDate(iso){
+    const [y,m,d]=iso.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'2-digit',month:'short'});
+  }
+  function parseDuration(s){
+    if(!s || !String(s).trim()) return null;
+    const p=String(s).trim().split(':').map(Number);
+    if(p.some(x=>!Number.isFinite(x)||x<0)) return null;
+    if(p.length===2) return p[0]*60+p[1];
+    if(p.length===3) return p[0]*3600+p[1]*60+p[2];
+    if(p.length===1) return p[0]*60;
+    return null;
+  }
+  function fmtDuration(sec){
+    if(!isNum(sec)) return '—';
+    sec=Math.round(Number(sec));
+    const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+    return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function fmtMinutes(sec){
+    if(!isNum(sec)) return '—';
+    return (Number(sec)/60).toFixed(0)+' min';
+  }
+  function avgSpeed(w){
+    return isNum(w.distanceKm)&&isNum(w.bikeTimeSec)&&Number(w.bikeTimeSec)>0 ? Number(w.distanceKm)/(Number(w.bikeTimeSec)/3600) : null;
+  }
+  function effortFromScore(score){
+    if(!isNum(score)) return '';
+    score=Number(score);
+    if(score<=3) return 'Easy';
+    if(score<=6) return 'Moderate';
+    if(score<=8) return 'Hard';
+    return 'All Out';
+  }
+  function migrateWorkout(w){
+    const x={...w};
+    if(!x.effortLabel && isNum(x.rpe)) x.effortLabel=effortFromScore(x.rpe);
+    if(!x.typeMode) x.typeMode='manual';
+    if(!x.createdAt) x.createdAt=(x.date?x.date+'T12:00:00':'2026-01-01T12:00:00');
+    if(!x.updatedAt) x.updatedAt=x.createdAt;
+    return x;
+  }
+  function migrateRestDay(r){const x={...r};if(!x.updatedAt)x.updatedAt=(x.date?x.date+'T12:00:00':'2026-01-01T12:00:00');return x;}
+  function nowISO(){return new Date().toISOString();}
+  function newId(){return self.crypto?.randomUUID ? crypto.randomUUID() : 'w-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);}
+  function effortScore(w){
+    if(isNum(w.rpe)) return Number(w.rpe);
+    return ({'Easy':2,'Moderate':5,'Hard':7.5,'All Out':9.5})[w.effortLabel] ?? null;
+  }
+  function trainingLoad(w){
+    const dur=isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):null;
+    const effort=effortScore(w);
+    return isNum(effort)&&dur!==null ? Number(effort)*(dur/60) : null;
+  }
+  function inferWorkoutType(w){
+    const note=(w.notes||'').toLowerCase();
+    if(/interval|intervals|sprint|sprints|hiit|tabata|repeats/.test(note)) return 'Intervals';
+    const effort=w.effortLabel||effortFromScore(w.rpe), mins=(isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):0)/60;
+    if(effort==='Easy') return mins>0 && mins<=30 ? 'Recovery' : 'Easy';
+    if(effort==='Moderate') return mins>=25 ? 'Endurance' : 'Easy';
+    if(effort==='Hard') return 'Tempo';
+    if(effort==='All Out') return 'Tempo';
+    return 'Free Ride';
+  }
+  function resolvedType(w){ return w.typeMode==='auto' ? inferWorkoutType(w) : (w.type||'Free Ride'); }
+  function effortHtml(label){
+    if(!label) return '<span class="muted">—</span>';
+    const cls=label.toLowerCase().replace(/\s+/g,'-');
+    return `<span class="effort ${cls}">${esc(label)}</span>`;
+  }
+  function symPct(a,b){
+    if(!isNum(a)||!isNum(b)) return null;
+    a=Number(a); b=Number(b);
+    const mean=(Math.abs(a)+Math.abs(b))/2;
+    return mean===0 ? (a===b?0:null) : Math.abs(a-b)/mean*100;
+  }
+  function rec(w){
+    const td = isNum(w.bikeTimeSec)&&isNum(w.watchTimeSec)?Math.abs(Number(w.bikeTimeSec)-Number(w.watchTimeSec)):null;
+    const tp = symPct(w.bikeTimeSec,w.watchTimeSec);
+    const ad = isNum(w.bikeKcal)&&isNum(w.activeKcal)?Math.abs(Number(w.bikeKcal)-Number(w.activeKcal)):null;
+    const ap = symPct(w.bikeKcal,w.activeKcal);
+    const tt = isNum(w.bikeKcal)&&isNum(w.totalKcal)?Math.abs(Number(w.bikeKcal)-Number(w.totalKcal)):null;
+    const ttp = symPct(w.bikeKcal,w.totalKcal);
+    const hd = isNum(w.pulse)&&Number(w.pulse)>0&&isNum(w.avgHR)?Math.abs(Number(w.pulse)-Number(w.avgHR)):null;
+    const direct=[tp,ap].filter(isNum);
+    let level='none';
+    if(direct.length || isNum(hd)){
+      const max = direct.length?Math.max(...direct):0;
+      if(max>15 || (isNum(hd)&&hd>15)) level='large';
+      else if(max>5 || (isNum(hd)&&hd>5)) level='moderate';
+      else level='normal';
+    }
+    return {td,tp,ad,ap,tt,ttp,hd,level};
+  }
+  function flagHtml(level){
+    if(level==='large') return '<span class="flag bad">Large</span>';
+    if(level==='moderate') return '<span class="flag warn">Attention</span>';
+    if(level==='normal') return '<span class="flag ok">Normal</span>';
+    return '<span class="muted">—</span>';
+  }
+  function sessionMap(){
+    const sorted=[...state.workouts].sort((a,b)=>a.date.localeCompare(b.date)||(a.startTime||'99:99').localeCompare(b.startTime||'99:99')||(a.createdAt||'').localeCompare(b.createdAt||''));
+    const counts={}, out={};
+    sorted.forEach(w=>{counts[w.date]=(counts[w.date]||0)+1; out[w.id]=counts[w.date];});
+    return out;
+  }
+  function weekStart(iso){
+    const [y,m,d]=iso.split('-').map(Number), dt=new Date(y,m-1,d);
+    const day=(dt.getDay()+6)%7;
+    dt.setDate(dt.getDate()-day);
+    return localISO(dt);
+  }
+  function localISO(dt=new Date()){
+    const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  function addDays(iso,days){
+    const [y,m,d]=iso.split('-').map(Number), dt=new Date(y,m-1,d); dt.setDate(dt.getDate()+days); return localISO(dt);
+  }
+  function daysBetween(a,b){
+    const A=new Date(a+'T12:00:00'), B=new Date(b+'T12:00:00'); return Math.round((B-A)/86400000);
+  }
+  function aggregateDaily(){
+    const map=new Map();
+    state.workouts.forEach(w=>{
+      if(!w.date) return;
+      if(!map.has(w.date)) map.set(w.date,[]);
+      map.get(w.date).push(w);
+    });
+    const restMap=new Map(state.restDays.map(r=>[r.date,r]));
+    const dates=[...new Set([...map.keys(),...restMap.keys()])].sort().reverse();
+    return dates.map(date=>{
+      const ws=map.get(date)||[];
+      if(!ws.length) return {date,status:'Rest Day',rest:true,note:restMap.get(date)?.note||''};
+      const bikeSecs=sum(ws,'bikeTimeSec'), distance=sum(ws,'distanceKm'), bikeKcal=sum(ws,'bikeKcal'),
+            active=sum(ws,'activeKcal'), total=sum(ws,'totalKcal'), load=sumCalc(ws,trainingLoad);
+      const speed = bikeSecs>0 && distance!==null ? distance/(bikeSecs/3600) : null;
+      let hrNum=0, hrDen=0;
+      ws.forEach(w=>{
+        const wt=isNum(w.watchTimeSec)?Number(w.watchTimeSec):null;
+        if(isNum(w.avgHR)&&wt>0){hrNum+=Number(w.avgHR)*wt;hrDen+=wt;}
+      });
+      return {date,status:'Training',rest:false,workouts:ws.length,bikeSecs,distance,bikeKcal,active,total,load,speed,avgHR:hrDen?hrNum/hrDen:null};
+    });
+  }
+  function sum(arr,key){
+    const vals=arr.map(x=>isNum(x[key])?Number(x[key]):null).filter(v=>v!==null);
+    return vals.length?vals.reduce((a,b)=>a+b,0):null;
+  }
+  function sumCalc(arr,fn){
+    const vals=arr.map(fn).filter(isNum).map(Number);
+    return vals.length?vals.reduce((a,b)=>a+b,0):null;
+  }
+  function aggregateWeekly(){
+    const map=new Map();
+    state.workouts.forEach(w=>{
+      if(!w.date) return;
+      const wk=weekStart(w.date);
+      if(!map.has(wk)) map.set(wk,[]);
+      map.get(wk).push(w);
+    });
+    const keys=[...map.keys()].sort();
+    return keys.map(wk=>{
+      const ws=map.get(wk);
+      const bikeSecs=sum(ws,'bikeTimeSec'), dist=sum(ws,'distanceKm'), bk=sum(ws,'bikeKcal'), ak=sum(ws,'activeKcal'), load=sumCalc(ws,trainingLoad);
+      const days=new Set(ws.map(w=>w.date)).size;
+      const avgDist=dist!==null?dist/ws.length:null;
+      const durations=ws.map(w=>isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):null).filter(isNum);
+      const avgDur=durations.length?durations.reduce((a,b)=>a+b,0)/durations.length:null;
+      const avgSpd=bikeSecs>0&&dist!==null?dist/(bikeSecs/3600):null;
+      return {wk,ws:ws.length,days,bikeSecs,dist,bk,ak,avgDist,avgDur,avgSpd,load};
+    });
+  }
+  function currentWeekData(){
+    const wk=weekStart(localISO());
+    const w=aggregateWeekly().find(x=>x.wk===wk);
+    return w || {wk,ws:0,days:0,bikeSecs:null,dist:null,bk:null,ak:null,avgDist:null,avgDur:null,avgSpd:null,load:null};
+  }
+  function renderAll(){
+    renderToday(); renderWorkouts(); renderDaily(); renderWeekly(); renderDashboard(); syncTargets(); renderSyncUI();
+  }
+  function renderToday(){
+    const today=localISO(), ws=state.workouts.filter(w=>w.date===today).sort((a,b)=>(a.startTime||'99:99').localeCompare(b.startTime||'99:99'));
+    const daily=aggregateDaily().find(d=>d.date===today), rest=state.restDays.find(r=>r.date===today);
+    $('todayDateLabel').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+    if(ws.length){
+      $('todayHeadline').textContent=ws.length===1 ? 'Workout logged.' : `${ws.length} workouts logged.`;
+      const latest=ws[ws.length-1], type=resolvedType(latest), effort=latest.effortLabel||effortFromScore(latest.rpe);
+      $('todaySub').textContent=[type,effort].filter(Boolean).join(' · ') || 'Training day';
+    } else if(rest){$('todayHeadline').textContent='Rest day.';$('todaySub').textContent=rest.note||'Recovery counts too.';}
+    else {$('todayHeadline').textContent='Ready when you are.';$('todaySub').textContent='No workout logged today.';}
+    $('todayTime').textContent=daily&&!daily.rest&&isNum(daily.bikeSecs)?fmtDuration(daily.bikeSecs):'0 min';
+    $('todayDistance').textContent=daily&&!daily.rest&&isNum(daily.distance)?Number(daily.distance).toFixed(2)+' km':'0 km';
+    $('todayBikeKcal').textContent=daily&&!daily.rest&&isNum(daily.bikeKcal)?Math.round(daily.bikeKcal):'0';
+    $('todayWatchKcal').textContent=daily&&!daily.rest&&isNum(daily.active)?Math.round(daily.active):'—';
+    $('todaySpeed').textContent=daily&&!daily.rest&&isNum(daily.speed)?Number(daily.speed).toFixed(1)+' km/h':'—';
+    $('todaySessionCount').textContent=ws.length?`${ws.length} session${ws.length===1?'':'s'}`:(rest?'Rest day':'Nothing yet');
+    $('todaySessions').innerHTML=ws.length?ws.map(w=>`<div class="session-strip"><div class="main"><div class="title">${esc(resolvedType(w))} ${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</div><div class="sub">${w.startTime||'Time not entered'} · ${esc(w.source||'Indoor')}</div></div><div class="stat"><div class="k">Time</div><div class="v">${fmtDuration(w.bikeTimeSec)}</div></div><div class="stat"><div class="k">Distance</div><div class="v">${val(w.distanceKm,2,' km')}</div></div><div class="stat"><div class="k">Bike kcal</div><div class="v">${val(w.bikeKcal)}</div></div><div class="stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="row-actions"><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button></div></div>`).join(''):(rest?`<div class="card"><span class="pill rest">Rest Day</span>${rest.note?`<div class="workout-note" style="margin-top:10px">${esc(rest.note)}</div>`:''}</div>`:'<div class="card empty">Nothing logged yet. Add the ride after you finish and copy the numbers from the bike / Apple Watch.</div>');
+    const cw=currentWeekData();
+    $('todayWeekSummary').innerHTML=`<div class="box"><div class="k">Workouts</div><div class="v">${cw.ws}</div></div><div class="box"><div class="k">Time</div><div class="v">${isNum(cw.bikeSecs)?Math.round(cw.bikeSecs/60):0} min</div></div><div class="box"><div class="k">Distance</div><div class="v">${isNum(cw.dist)?cw.dist.toFixed(1):'0.0'} km</div></div>`;
+    const last=[...state.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.startTime||'').localeCompare(a.startTime||''))[0];
+    $('lastWorkoutSummary').innerHTML=last?`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div><b style="color:var(--text)">${esc(resolvedType(last))}</b> · ${effortHtml(last.effortLabel||effortFromScore(last.rpe))}<div style="margin-top:7px">${fmtDate(last.date)} · ${fmtDuration(last.bikeTimeSec)} · ${val(last.distanceKm,2,' km')} · ${val(last.bikeKcal)} kcal</div></div><button class="iconbtn" onclick="RideLab.shareWorkout('${last.id}')">Share</button></div>`:'No workouts yet.';
+  }
+
+  function renderWorkouts(){
+    const tb=$('workoutTable').querySelector('tbody'), cards=$('workoutCards'), sm=sessionMap(), term=$('search').value.trim().toLowerCase(), src=$('sourceFilter').value;
+    let ws=[...state.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.startTime||'').localeCompare(a.startTime||''));
+    ws=ws.filter(w=>(!src||w.source===src) && (!term||[resolvedType(w),w.type,w.notes,w.date,w.effortLabel].join(' ').toLowerCase().includes(term)));
+    $('workoutCount').textContent=`${ws.length} workout${ws.length===1?'':'s'}`;
+    if(!ws.length){
+      tb.innerHTML='<tr><td colspan="13" class="empty">No workouts match this view.</td></tr>';
+      cards.innerHTML='<div class="empty workout-card">No workouts match this view.</div>';
+      return;
+    }
+    tb.innerHTML=ws.map(w=>{
+      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w), detailId='detail-'+w.id;
+      return `<tr class="workout-row">
+        <td>${fmtDate(w.date)}</td>
+        <td><span class="pill ${w.source==='Outdoor'?'outdoor':'indoor'}">${w.source||'Indoor'}</span></td>
+        <td>${esc(typ)}${w.typeMode==='auto'?'<div class="small muted">Auto</div>':''}</td>
+        <td>${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</td>
+        <td>${fmtDuration(w.bikeTimeSec)}</td><td>${val(w.distanceKm,2,' km')}</td><td>${val(w.bikeKcal)}</td><td>${val(w.activeKcal)}</td><td>${val(w.avgHR)}</td><td>${val(a,1,' km/h')}</td><td>${flagHtml(r.level)}</td>
+        <td class="notes-cell" title="${esc(w.notes||'')}">${esc(w.notes||'—')}</td>
+        <td><div class="row-actions"><button class="iconbtn" onclick="RideLab.toggleDetails('${w.id}')">Details</button><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button></div></td>
+      </tr>
+      <tr class="detail-row" id="${detailId}"><td colspan="13">
+        <div class="detail-grid">
+          <div class="detail-box"><h4>Bike</h4><div class="detail-list"><span>Session</span><b>${sm[w.id]||'—'}</b><span>Start</span><b>${w.startTime||'—'}</b><span>Console speed</span><b>${val(w.displayedSpeed,1,' km/h')}</b><span>Calculated speed</span><b>${val(a,2,' km/h')}</b><span>Watt</span><b>${val(w.watt)}</b><span>Pulse</span><b>${val(w.pulse)}</b><span>RPM</span><b>${val(w.rpm)}</b><span>RideLab load</span><b>${val(load,0)}</b></div></div>
+          <div class="detail-box"><h4>Apple Watch</h4><div class="detail-list"><span>Time</span><b>${fmtDuration(w.watchTimeSec)}</b><span>Active kcal</span><b>${val(w.activeKcal)}</b><span>Total kcal</span><b>${val(w.totalKcal)}</b><span>Average HR</span><b>${val(w.avgHR)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Effort</span><b>${esc(w.effortLabel||effortFromScore(w.rpe)||'—')}</b></div></div>
+          <div class="detail-box"><h4>Bike ↔ Watch</h4><div class="detail-list"><span>Time difference</span><b>${isNum(r.td)?fmtDuration(r.td):'—'}</b><span>Time difference</span><b>${val(r.tp,1,'%')}</b><span>Active kcal difference</span><b>${isNum(r.ad)?val(r.ad)+' · '+val(r.ap,1,'%'):'—'}</b><span>Total kcal difference</span><b>${isNum(r.tt)?val(r.tt)+' · '+val(r.ttp,1,'%'):'—'}</b><span>HR difference</span><b>${val(r.hd)}</b><span>Comparison</span><b>${flagHtml(r.level)}</b></div><div class="card-actions"><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button><button class="iconbtn danger" onclick="RideLab.del('${w.id}')">Delete</button></div></div>
+        </div>
+      </td></tr>`;
+    }).join('');
+
+    cards.innerHTML=ws.map(w=>{
+      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w);
+      return `<article class="workout-card">
+        <div class="workout-card-head"><div><div class="workout-card-title">${esc(typ)}${w.typeMode==='auto'?' <span class="small muted">· Auto</span>':''}</div><div class="workout-card-date">${fmtDate(w.date)}${w.startTime?' · '+w.startTime:''}</div></div><div>${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</div></div>
+        <div class="workout-stats"><div class="workout-stat"><div class="k">Time</div><div class="v">${fmtDuration(w.bikeTimeSec)}</div></div><div class="workout-stat"><div class="k">Distance</div><div class="v">${val(w.distanceKm,2,' km')}</div></div><div class="workout-stat"><div class="k">Bike kcal</div><div class="v">${val(w.bikeKcal)}</div></div><div class="workout-stat"><div class="k">Watch kcal</div><div class="v">${val(w.activeKcal)}</div></div><div class="workout-stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="workout-stat"><div class="k">Avg speed</div><div class="v">${val(a,1,' km/h')}</div></div></div>
+        ${w.notes?`<div class="workout-note">${esc(w.notes)}</div>`:''}
+        <div class="card-actions"><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button></div>
+        <details class="mobile-details"><summary>More details</summary><div class="detail-list"><span>Ride</span><b>${esc(w.source||'Indoor')}</b><span>RideLab load</span><b>${val(load,0)}</b><span>Watch total kcal</span><b>${val(w.totalKcal)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Bike/Watch match</span><b>${flagHtml(r.level)}</b><span>Watt</span><b>${val(w.watt)}</b><span>RPM</span><b>${val(w.rpm)}</b></div><div class="card-actions"><button class="iconbtn danger" onclick="RideLab.del('${w.id}')">Delete workout</button></div></details>
+      </article>`;
+    }).join('');
+  }
+
+  function renderDaily(){
+    const tb=$('dailyTable').querySelector('tbody'), ds=aggregateDaily();
+    if(!ds.length){tb.innerHTML='<tr><td colspan="12" class="empty">No daily data yet.</td></tr>';return;}
+    tb.innerHTML=ds.map(d=>d.rest?`<tr>
+      <td>${fmtDate(d.date)}</td><td><span class="pill rest">Rest Day</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="text">${esc(d.note||'—')}</td><td><button class="iconbtn" onclick="RideLab.delRest('${d.date}')">Remove</button></td>
+    </tr>`:`<tr>
+      <td>${fmtDate(d.date)}</td><td><span class="pill indoor">Training</span></td><td>${d.workouts}</td><td>${fmtDuration(d.bikeSecs)}</td><td>${val(d.distance,2,' km')}</td><td>${val(d.bikeKcal)}</td><td>${val(d.active)}</td><td>${val(d.total)}</td><td>${val(d.load,0)}</td><td>${val(d.speed,2,' km/h')}</td><td>${val(d.avgHR,0)}</td><td>—</td>
+    </tr>`).join('');
+  }
+  function renderWeekly(){
+    const tb=$('weeklyTable').querySelector('tbody'), ws=aggregateWeekly(), map=new Map(ws.map(x=>[x.wk,x]));
+    if(!ws.length){tb.innerHTML='<tr><td colspan="13" class="empty">No weekly data yet.</td></tr>';return;}
+    tb.innerHTML=[...ws].reverse().map(w=>{
+      const prev=map.get(addDays(w.wk,-7));
+      const prevDist=prev&&isNum(prev.dist)?prev.dist:null;
+      const wow=isNum(w.dist)&&isNum(prevDist)&&prevDist!==0?(w.dist-prevDist)/prevDist*100:null;
+      return `<tr>
+        <td>${fmtShortDate(w.wk)} – ${fmtShortDate(addDays(w.wk,6))}</td><td>${w.ws}</td><td>${w.days}</td><td>${fmtDuration(w.bikeSecs)}</td>
+        <td>${val(w.dist,2,' km')}</td><td>${val(w.bk)}</td><td>${val(w.ak)}</td><td>${val(w.avgDist,2,' km')}</td><td>${fmtDuration(w.avgDur)}</td><td>${val(w.avgSpd,2,' km/h')}</td><td>${val(w.load,0)}</td><td>${val(prevDist,2,' km')}</td><td>${val(wow,1,'%')}</td>
+      </tr>`;
+    }).join('');
+  }
+  function renderDashboard(){
+    const cw=currentWeekData(), all=state.workouts, today=localISO();
+    $('wkMinutes').textContent=isNum(cw.bikeSecs)?Math.round(cw.bikeSecs/60)+' min':'0 min';
+    $('wkSub').textContent=`${cw.ws} workout${cw.ws===1?'':'s'} · ${cw.days} active day${cw.days===1?'':'s'} · ${isNum(cw.dist)?cw.dist.toFixed(1):'0.0'} km`;
+    const last30=all.filter(w=>daysBetween(w.date,today)>=0 && daysBetween(w.date,today)<=29);
+    const d30=sum(last30,'distanceKm'), t30=sum(last30,'bikeTimeSec');
+    $('m30Distance').textContent=isNum(d30)?d30.toFixed(1)+' km':'—';
+    $('m30Sub').textContent=`${last30.length} workouts · ${isNum(t30)?Math.round(t30/60):0} min`;
+    const ad=sum(all,'distanceKm'), at=sum(all,'bikeTimeSec');
+    $('allDistance').textContent=isNum(ad)?ad.toFixed(1)+' km':'—';
+    $('allSub').textContent=`${all.length} workouts · ${isNum(at)?Math.round(at/60):0} min`;
+    $('wkLoad').textContent=isNum(cw.load)?Math.round(cw.load):'—';
+    renderTargets(cw); renderPBs(); drawCharts();
+  }
+  function renderTargets(cw){
+    const items=[
+      ['Workouts',cw.ws,state.targets.workouts,''],
+      ['Active days',cw.days,state.targets.days,''],
+      ['Minutes',isNum(cw.bikeSecs)?cw.bikeSecs/60:0,state.targets.minutes,''],
+      ['Distance',isNum(cw.dist)?cw.dist:0,state.targets.distance,' km'],
+      ['RideLab load',isNum(cw.load)?cw.load:0,state.targets.load,'']
+    ];
+    $('targetsCard').innerHTML=items.map(([lab,cur,tgt,suf])=>{
+      const pct=tgt>0?Math.min(100,cur/tgt*100):0;
+      const disp=(lab==='Distance'?Number(cur).toFixed(1):Math.round(cur))+suf+' / '+tgt+suf;
+      return `<div class="progress-wrap"><div class="progress-row"><span>${lab}</span><span>${disp}</span></div><div class="progress"><div class="bar" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+  }
+  function renderPBs(){
+    const ws=state.workouts;
+    const maxObj=(fn)=>ws.reduce((best,w)=>{const v=fn(w);return isNum(v)&&(!best||v>best.v)?{v,w}:best},null);
+    const pbs=[
+      ['Longest workout', maxObj(w=>w.bikeTimeSec), x=>fmtDuration(x.v)],
+      ['Longest distance', maxObj(w=>w.distanceKm), x=>Number(x.v).toFixed(2)+' km'],
+      ['Highest avg speed', maxObj(avgSpeed), x=>Number(x.v).toFixed(2)+' km/h'],
+      ['Most bike calories', maxObj(w=>w.bikeKcal), x=>Math.round(x.v)+' kcal'],
+      ['Highest Watch avg HR', maxObj(w=>w.avgHR), x=>Math.round(x.v)+' bpm']
+    ];
+    $('pbList').innerHTML=pbs.map(([lab,obj,fmt])=>`<div class="pb"><div class="label">${lab}</div><div class="value">${obj?fmt(obj):'—'}</div><div class="small muted">${obj?fmtShortDate(obj.w.date):'No data'}</div></div>`).join('');
+  }
+  function syncTargets(){
+    $('targetWorkouts').value=state.targets.workouts; $('targetDays').value=state.targets.days; $('targetMinutes').value=state.targets.minutes; $('targetDistance').value=state.targets.distance; $('targetLoad').value=state.targets.load;
+  }
+  function drawCharts(){
+    const weeks=aggregateWeekly();
+    drawLine('chartDistance',weeks.map(w=>({label:fmtShortDate(w.wk),value:w.dist})),['Distance']);
+    drawLine('chartMinutes',weeks.map(w=>({label:fmtShortDate(w.wk),value:isNum(w.bikeSecs)?w.bikeSecs/60:null})),['Minutes']);
+    drawMulti('chartCalories',weeks.map(w=>({label:fmtShortDate(w.wk),a:w.bk,b:w.ak})));
+    drawLine('chartLoad',weeks.map(w=>({label:fmtShortDate(w.wk),value:w.load})),['Load']);
+  }
+  function prepCanvas(id){
+    const c=$(id), rect=c.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+    c.width=Math.max(400,Math.round(rect.width*dpr)); c.height=Math.max(220,Math.round(rect.height*dpr));
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr); return {c,ctx,w:rect.width,h:rect.height};
+  }
+  function drawLine(id,data){
+    const {ctx,w,h}=prepCanvas(id); const pad={l:42,r:16,t:18,b:32}; ctx.clearRect(0,0,w,h);
+    const pts=data.filter(x=>isNum(x.value)); if(!pts.length){drawEmpty(ctx,w,h);return;}
+    const max=Math.max(...pts.map(x=>Number(x.value)),1), min=0;
+    grid(ctx,w,h,pad,max);
+    ctx.strokeStyle='#4dd2c4';ctx.lineWidth=2.4;ctx.beginPath();
+    pts.forEach((p,i)=>{const x=pad.l+(w-pad.l-pad.r)*(pts.length===1?.5:i/(pts.length-1));const y=pad.t+(h-pad.t-pad.b)*(1-(Number(p.value)-min)/(max-min||1));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.stroke(); points(ctx,pts,w,h,pad,max,'#4dd2c4'); labels(ctx,pts,w,h,pad);
+  }
+  function drawMulti(id,data){
+    const {ctx,w,h}=prepCanvas(id); const pad={l:42,r:16,t:18,b:32}; ctx.clearRect(0,0,w,h);
+    const vals=data.flatMap(x=>[x.a,x.b]).filter(isNum).map(Number); if(!vals.length){drawEmpty(ctx,w,h);return;}
+    const max=Math.max(...vals,1); grid(ctx,w,h,pad,max);
+    const series=[['a','#4dd2c4'],['b','#7aa8ff']];
+    series.forEach(([key,color])=>{
+      const pts=data.map(x=>({label:x.label,value:x[key]})).filter(x=>isNum(x.value));
+      if(!pts.length)return; ctx.strokeStyle=color;ctx.lineWidth=2.2;ctx.beginPath();
+      pts.forEach((p,i)=>{const idx=data.findIndex(d=>d.label===p.label); const x=pad.l+(w-pad.l-pad.r)*(data.length===1?.5:idx/(data.length-1)); const y=pad.t+(h-pad.t-pad.b)*(1-Number(p.value)/max); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
+    });
+    labels(ctx,data,w,h,pad);
+  }
+  function grid(ctx,w,h,pad,max){
+    ctx.font='11px system-ui';ctx.fillStyle='#7286aa';ctx.strokeStyle='#26344f';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=pad.t+(h-pad.t-pad.b)*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();const v=max*(1-i/4);ctx.fillText(Math.round(v),4,y+4);}
+  }
+  function points(ctx,pts,w,h,pad,max,color){
+    ctx.fillStyle=color;pts.forEach((p,i)=>{const x=pad.l+(w-pad.l-pad.r)*(pts.length===1?.5:i/(pts.length-1));const y=pad.t+(h-pad.t-pad.b)*(1-Number(p.value)/max);ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fill();});
+  }
+  function labels(ctx,data,w,h,pad){
+    ctx.fillStyle='#7286aa';ctx.font='10px system-ui';const step=Math.max(1,Math.ceil(data.length/6));
+    data.forEach((p,i)=>{if(i%step&&i!==data.length-1)return;const x=pad.l+(w-pad.l-pad.r)*(data.length===1?.5:i/(data.length-1));ctx.fillText(p.label,x-12,h-10);});
+  }
+  function drawEmpty(ctx,w,h){ctx.fillStyle='#7183a4';ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillText('No training data yet',w/2,h/2);ctx.textAlign='left';}
+  function fmtShareDate(iso){
+    if(!iso) return '';
+    const [y,m,d]=iso.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  }
+  function shareWorkoutText(w){
+    const line1=`🚴 RideLab · ${fmtShareDate(w.date)}`;
+    const meta=[resolvedType(w),w.effortLabel||effortFromScore(w.rpe)].filter(Boolean).join(' · ');
+    const core=[fmtDuration(w.bikeTimeSec),isNum(w.distanceKm)?Number(w.distanceKm).toFixed(2)+' km':null,isNum(avgSpeed(w))?Number(avgSpeed(w)).toFixed(1)+' km/h':null].filter(Boolean).join(' · ');
+    const extra=[isNum(w.bikeKcal)?Math.round(w.bikeKcal)+' kcal':null,isNum(w.avgHR)?Math.round(w.avgHR)+' bpm avg':null].filter(Boolean).join(' · ');
+    return [line1,meta,core,extra].filter(Boolean).join('\n');
+  }
+  function shareDayText(date){
+    const ws=state.workouts.filter(w=>w.date===date);
+    if(!ws.length) return `🚴 RideLab · ${date===localISO()?'Today':fmtShareDate(date)}\nNo workouts logged.`;
+    const secs=sum(ws,'bikeTimeSec'), dist=sum(ws,'distanceKm'), kcal=sum(ws,'bikeKcal'), active=sum(ws,'activeKcal');
+    const head=`🚴 RideLab · ${date===localISO()?'Today':fmtShareDate(date)}`;
+    const summary=`${ws.length} workout${ws.length===1?'':'s'} · ${fmtDuration(secs)} · ${isNum(dist)?Number(dist).toFixed(2)+' km':'—'}`;
+    const calories=[isNum(kcal)?Math.round(kcal)+' bike kcal':null,isNum(active)?Math.round(active)+' Watch active kcal':null].filter(Boolean).join(' · ');
+    return [head,summary,calories].filter(Boolean).join('\n');
+  }
+  let pendingShareText='';
+  function setShareChoice(mode){
+    qsa('.share-choice .btn').forEach(b=>b.classList.remove('active'));
+    if(mode==='today'){$('shareTodayChoice').classList.add('active');pendingShareText=shareDayText(localISO());}
+    else {$('shareLatestChoice').classList.add('active');const w=[...state.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.startTime||'').localeCompare(a.startTime||''))[0];pendingShareText=w?shareWorkoutText(w):'RideLab · No workouts logged yet.';}
+    $('sharePreview').textContent=pendingShareText;
+  }
+  async function copyText(text){
+    try{await navigator.clipboard.writeText(text);return true;}catch(e){
+      const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;
+    }
+  }
+  async function shareText(text){
+    if(navigator.share){try{await navigator.share({title:'RideLab',text});return;}catch(e){if(e?.name==='AbortError')return;}}
+    const ok=await copyText(text);alert(ok?'Workout summary copied. Paste it into LINE.':'Could not open sharing or copy the summary.');
+  }
+  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+  function openWorkout(source='Indoor',id=null){
+    $('workoutForm').reset(); $('editId').value=''; $('fSource').value=source; $('fDate').value=localISO(); $('fType').value='Auto'; $('modalTitle').textContent=source==='Outdoor'?'Outdoor Ride':'Add Workout';
+    if(id){
+      const w=state.workouts.find(x=>x.id===id); if(!w)return;
+      $('editId').value=w.id;$('modalTitle').textContent='Edit Workout';$('fDate').value=w.date;$('fStart').value=w.startTime||'';$('fSource').value=w.source||'Indoor';$('fEffort').value=w.effortLabel||effortFromScore(w.rpe)||'';$('fType').value=w.typeMode==='auto'?'Auto':(w.type||'Free Ride');$('fNotes').value=w.notes||'';
+      $('fBikeTime').value=isNum(w.bikeTimeSec)?fmtDuration(w.bikeTimeSec):'';$('fDistance').value=isNum(w.distanceKm)?w.distanceKm:'';$('fBikeKcal').value=isNum(w.bikeKcal)?w.bikeKcal:'';$('fDisplaySpeed').value=isNum(w.displayedSpeed)?w.displayedSpeed:'';
+      $('fWatt').value=isNum(w.watt)?w.watt:'';$('fPulse').value=isNum(w.pulse)?w.pulse:'';$('fRpm').value=isNum(w.rpm)?w.rpm:'';
+      $('fWatchTime').value=isNum(w.watchTimeSec)?fmtDuration(w.watchTimeSec):'';$('fActiveKcal').value=isNum(w.activeKcal)?w.activeKcal:'';$('fTotalKcal').value=isNum(w.totalKcal)?w.totalKcal:'';$('fAvgHr').value=isNum(w.avgHR)?w.avgHR:'';$('fHrMin').value=isNum(w.hrMin)?w.hrMin:'';$('fHrMax').value=isNum(w.hrMax)?w.hrMax:'';
+    }
+    updateCalcPreview(); updateTypePreview(); $('workoutDialog').showModal();
+  }
+  function updateCalcPreview(){
+    const t=parseDuration($('fBikeTime').value), d=n($('fDistance').value);
+    $('fCalcSpeed').value=t>0&&isNum(d)?(d/(t/3600)).toFixed(2)+' km/h':'';
+  }
+  function updateTypePreview(){
+    const auto=$('fType').value==='Auto';
+    const draft={effortLabel:$('fEffort').value,bikeTimeSec:parseDuration($('fBikeTime').value),watchTimeSec:parseDuration($('fWatchTime').value),notes:$('fNotes').value};
+    $('fTypeHint').textContent=auto ? `RideLab suggestion: ${inferWorkoutType(draft)} · based on effort, duration and interval/sprint notes.` : 'Manual choice. You can switch back to Auto any time.';
+  }
+  $('workoutForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const id=$('editId').value||newId();
+    const old=state.workouts.find(x=>x.id===id);
+    const autoType=$('fType').value==='Auto';
+    const w={
+      id,date:$('fDate').value,startTime:$('fStart').value,source:$('fSource').value,type:'Free Ride',typeMode:autoType?'auto':'manual',effortLabel:$('fEffort').value,rpe:null,notes:$('fNotes').value.trim(),
+      bikeTimeSec:parseDuration($('fBikeTime').value),distanceKm:n($('fDistance').value),bikeKcal:n($('fBikeKcal').value),displayedSpeed:n($('fDisplaySpeed').value),watt:n($('fWatt').value),pulse:n($('fPulse').value),rpm:n($('fRpm').value),
+      watchTimeSec:parseDuration($('fWatchTime').value),activeKcal:n($('fActiveKcal').value),totalKcal:n($('fTotalKcal').value),avgHR:n($('fAvgHr').value),hrMin:n($('fHrMin').value),hrMax:n($('fHrMax').value),
+      createdAt:old?.createdAt||nowISO(),updatedAt:nowISO()
+    };
+    w.type=autoType?inferWorkoutType(w):$('fType').value;
+    if(!w.date)return;
+    const idx=state.workouts.findIndex(x=>x.id===id); if(idx>=0)state.workouts[idx]=w; else state.workouts.push(w);
+    if(state.restDays.some(r=>r.date===w.date)) state.deletedRestDays[w.date]=nowISO();
+    state.restDays=state.restDays.filter(r=>r.date!==w.date);
+    delete state.deletedWorkouts[w.id];
+    saveState();$('workoutDialog').close();renderAll();
+  });
+  $('restForm').addEventListener('submit',e=>{
+    e.preventDefault();const date=$('rDate').value;if(!date)return;
+    if(state.workouts.some(w=>w.date===date)){alert('That date already has a workout. Remove the workout first if this should be a rest day.');return;}
+    const idx=state.restDays.findIndex(r=>r.date===date), r={date,note:$('rNote').value.trim(),updatedAt:nowISO()};
+    if(idx>=0)state.restDays[idx]=r; else state.restDays.push(r); delete state.deletedRestDays[date];
+    saveState();$('restDialog').close();renderAll();
+  });
+  window.RideLab={
+    edit:id=>openWorkout('Indoor',id),
+    toggleDetails:id=>{const row=$('detail-'+id);if(row)row.classList.toggle('open');},
+    shareWorkout:id=>{const w=state.workouts.find(x=>x.id===id);if(w)shareText(shareWorkoutText(w));},
+    del:id=>{if(confirm('Delete this workout?')){state.workouts=state.workouts.filter(w=>w.id!==id);state.deletedWorkouts[id]=nowISO();saveState();renderAll();}},
+    delRest:date=>{if(confirm('Remove this rest-day marker?')){state.restDays=state.restDays.filter(r=>r.date!==date);state.deletedRestDays[date]=nowISO();saveState();renderAll();}}
+  };
+  $('addWorkoutBtn').onclick=()=>openWorkout('Indoor');
+  $('outdoorBtn').onclick=()=>openWorkout('Outdoor');
+  $('restBtn').onclick=()=>openRestDialog();
+  $('todayAddBtn').onclick=()=>openWorkout('Indoor');
+  $('todayRestBtn').onclick=()=>openRestDialog();
+  $('todayShareBtn').onclick=()=>shareText(shareDayText(localISO()));
+  function openRestDialog(){$('restForm').reset();$('rDate').value=localISO();$('restDialog').showModal();}
+  $('closeModal').onclick=$('cancelModal').onclick=()=>$('workoutDialog').close();
+  $('closeRest').onclick=$('cancelRest').onclick=()=>$('restDialog').close();
+  $('shareBtn').onclick=()=>{setShareChoice('latest');$('shareDialog').showModal();};
+  $('closeShare').onclick=()=>$('shareDialog').close();
+  $('shareLatestChoice').onclick=()=>setShareChoice('latest');
+  $('shareTodayChoice').onclick=()=>setShareChoice('today');
+  $('copyShare').onclick=async()=>{const ok=await copyText(pendingShareText);if(ok)$('copyShare').textContent='Copied';setTimeout(()=>$('copyShare').textContent='Copy',1200);};
+  $('systemShare').onclick=()=>shareText(pendingShareText);
+  $('fBikeTime').addEventListener('input',()=>{updateCalcPreview();updateTypePreview();});$('fDistance').addEventListener('input',updateCalcPreview);$('fWatchTime').addEventListener('input',updateTypePreview);$('fEffort').addEventListener('change',updateTypePreview);$('fType').addEventListener('change',updateTypePreview);$('fNotes').addEventListener('input',updateTypePreview);
+  $('search').addEventListener('input',renderWorkouts);$('sourceFilter').addEventListener('change',renderWorkouts);
+  qsa('.tab').forEach(b=>b.onclick=()=>{
+    qsa('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');qsa('.page').forEach(p=>p.classList.remove('active'));$(b.dataset.page).classList.add('active');if(b.dataset.page==='dashboard')setTimeout(drawCharts,20);
+  });
+  $('saveTargets').onclick=()=>{
+    state.targets={workouts:n($('targetWorkouts').value)||0,days:n($('targetDays').value)||0,minutes:n($('targetMinutes').value)||0,distance:n($('targetDistance').value)||0,load:n($('targetLoad').value)||0};
+    state.settingsUpdatedAt=nowISO(); saveState();renderDashboard();renderToday();
+  };
+  $('exportJson').onclick=()=>download('RideLab_backup_'+localISO()+'.json',JSON.stringify(state,null,2),'application/json');
+  $('importJsonBtn').onclick=()=>$('importJson').click();
+  $('importJson').onchange=async e=>{
+    const f=e.target.files?.[0];if(!f)return;
+    try{
+      const parsed=JSON.parse(await f.text());
+      if(!Array.isArray(parsed.workouts))throw new Error('Invalid backup');
+      if(confirm('Replace the current local data with this backup?')){state=normalizeState(parsed);saveState();renderAll();}
+    }catch(err){alert('Could not import this JSON backup.');}
+    e.target.value='';
+  };
+  $('exportCsv').onclick=()=>{
+    const sm=sessionMap();
+    const head=['Date','Session','Start time','Ride','Workout type','Effort','Notes','Bike time','Distance km','Bike kcal','Bike displayed speed','Calculated avg speed km/h','Watt','Bike pulse','RPM','RideLab load','Watch time','Watch active kcal','Watch total kcal','Watch avg HR','Watch HR min','Watch HR max','Time difference','Time difference %','Bike vs Watch active kcal difference','Active difference %','Bike vs Watch total kcal difference','Total difference %','Bike vs Watch avg HR difference','Discrepancy flag'];
+    const rows=state.workouts.sort((a,b)=>a.date.localeCompare(b.date)).map(w=>{const r=rec(w);return [
+      w.date,sm[w.id],w.startTime,w.source,resolvedType(w),w.effortLabel||effortFromScore(w.rpe),w.notes,fmtDuration(w.bikeTimeSec),w.distanceKm,w.bikeKcal,w.displayedSpeed,avgSpeed(w),w.watt,w.pulse,w.rpm,trainingLoad(w),fmtDuration(w.watchTimeSec),w.activeKcal,w.totalKcal,w.avgHR,w.hrMin,w.hrMax,isNum(r.td)?fmtDuration(r.td):'',r.tp,r.ad,r.ap,r.tt,r.ttp,r.hd,r.level==='none'?'':r.level
+    ];});
+    const csv=[head,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
+    download('RideLab_workouts_'+localISO()+'.csv','\ufeff'+csv,'text/csv;charset=utf-8');
+  };
+  const SETUP_SQL=`-- RideLab cloud tables + Row Level Security
+create table if not exists public.ridelab_workouts (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  local_id text not null,
+  payload jsonb,
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  primary key (user_id, local_id)
+);
+
+create table if not exists public.ridelab_rest_days (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  local_id text not null,
+  payload jsonb,
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  primary key (user_id, local_id)
+);
+
+create table if not exists public.ridelab_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  targets jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.ridelab_workouts enable row level security;
+alter table public.ridelab_rest_days enable row level security;
+alter table public.ridelab_settings enable row level security;
+
+drop policy if exists "ridelab_workouts_own" on public.ridelab_workouts;
+create policy "ridelab_workouts_own" on public.ridelab_workouts for all
+using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "ridelab_rest_days_own" on public.ridelab_rest_days;
+create policy "ridelab_rest_days_own" on public.ridelab_rest_days for all
+using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "ridelab_settings_own" on public.ridelab_settings;
+create policy "ridelab_settings_own" on public.ridelab_settings for all
+using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
+
+  function getSyncConfig(){try{return {...DEFAULT_SYNC_CONFIG,...JSON.parse(localStorage.getItem(SYNC_KEY)||'{}')}}catch(e){return {...DEFAULT_SYNC_CONFIG}}}
+  function setSyncConfig(c){localStorage.setItem(SYNC_KEY,JSON.stringify(c));supabaseClient=null;renderSyncUI();}
+  function setSyncStatus(kind,text,detail=''){
+    const b=$('syncStatusBtn'); if(b){b.className='sync-pill '+kind;$('syncStatusText').textContent=text;}
+    if($('cloudStateTitle'))$('cloudStateTitle').textContent=text;
+    if(detail&&$('cloudStateDetail'))$('cloudStateDetail').textContent=detail;
+  }
+  async function getCloudClient(){
+    const cfg=getSyncConfig(); if(!cfg.url||!cfg.key) throw new Error('Add your Supabase URL and publishable key first.');
+    if(location.protocol==='file:') throw new Error('Cloud login/sync needs RideLab to be hosted over HTTPS. Local RideLab still works normally.');
+    if(!supabaseClient){
+      const mod=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+      supabaseClient=mod.createClient(cfg.url.replace(/\/$/,''),cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce',storageKey:'ridelab-cloud-auth'}});
+      supabaseClient.auth.onAuthStateChange((event)=>{setTimeout(()=>{renderSyncUI();if(event==='SIGNED_IN')syncCloud();},0)});
+    }
+    return supabaseClient;
+  }
+  function renderSyncUI(){
+    const cfg=getSyncConfig();
+    if($('syncUrl')&&document.activeElement!==$('syncUrl'))$('syncUrl').value=cfg.url||'';
+    if($('syncKey')&&document.activeElement!==$('syncKey'))$('syncKey').value=cfg.key||'';
+    if($('syncEmail')&&document.activeElement!==$('syncEmail'))$('syncEmail').value=cfg.email||'';
+    if(!cfg.url||!cfg.key){setSyncStatus(navigator.onLine?'offline':'offline',navigator.onLine?'Local only':'Offline','Nothing leaves this browser until you connect Supabase.');$('cloudModePill').textContent='Optional';return;}
+    $('cloudModePill').textContent='Configured';
+    if(!navigator.onLine){setSyncStatus('offline','Offline','Changes are safe on this device and will sync when you are back online.');return;}
+    if(!syncInFlight)setSyncStatus('offline','Cloud ready','Connection saved. Sign in by email, then sync.');
+  }
+  function scheduleCloudSync(){
+    const cfg=getSyncConfig(); if(!cfg.url||!cfg.key||!navigator.onLine)return;
+    clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(true),800);
+  }
+  function stamp(x){const t=Date.parse(x||'');return Number.isFinite(t)?t:0;}
+  function mergeCloudRows(localArr,tombs,remoteRows,idKey,migrator){
+    const localMap=new Map(localArr.map(x=>[String(x[idKey]),x]));
+    const remoteMap=new Map((remoteRows||[]).map(r=>[String(r.local_id),r]));
+    const upload=[];
+    for(const id of new Set([...localMap.keys(),...Object.keys(tombs||{}),...remoteMap.keys()])){
+      const local=localMap.get(id), delAt=tombs?.[id]||null, remote=remoteMap.get(id);
+      const localTs=Math.max(stamp(local?.updatedAt),stamp(delAt)), remoteTs=stamp(remote?.updated_at);
+      if(remote && remoteTs>localTs){
+        if(remote.deleted_at){localMap.delete(id);tombs[id]=remote.deleted_at;}
+        else {localMap.set(id,migrator({...remote.payload,[idKey]:id,updatedAt:remote.updated_at}));delete tombs[id];}
+      } else if(localTs>remoteTs || !remote){
+        upload.push({local_id:id,payload:delAt?null:local,updated_at:new Date(localTs||Date.now()).toISOString(),deleted_at:delAt});
+      }
+    }
+    return {items:[...localMap.values()],upload};
+  }
+  async function syncCloud(silent=false){
+    if(syncInFlight)return; const cfg=getSyncConfig(); if(!cfg.url||!cfg.key||!navigator.onLine)return;
+    syncInFlight=true;setSyncStatus('syncing','Syncing…','Saving local changes and checking your other devices.');
+    try{
+      const sb=await getCloudClient();
+      const {data:{user},error:uerr}=await sb.auth.getUser(); if(uerr)throw uerr; if(!user){setSyncStatus('offline','Sign in needed','Use “Email me a sign-in link” in Settings.');return;}
+      const [wr,rr,sr]=await Promise.all([
+        sb.from('ridelab_workouts').select('local_id,payload,updated_at,deleted_at'),
+        sb.from('ridelab_rest_days').select('local_id,payload,updated_at,deleted_at'),
+        sb.from('ridelab_settings').select('targets,updated_at').maybeSingle()
+      ]);
+      if(wr.error)throw wr.error;if(rr.error)throw rr.error;if(sr.error)throw sr.error;
+      const wm=mergeCloudRows(state.workouts,state.deletedWorkouts,wr.data,'id',migrateWorkout);
+      const rm=mergeCloudRows(state.restDays,state.deletedRestDays,rr.data,'date',migrateRestDay);
+      state.workouts=wm.items;state.restDays=rm.items;
+      let settingsUpload=false;
+      if(sr.data && stamp(sr.data.updated_at)>stamp(state.settingsUpdatedAt)){state.targets={...DEFAULTS.targets,...(sr.data.targets||{})};state.settingsUpdatedAt=sr.data.updated_at;}
+      else if(!sr.data || stamp(state.settingsUpdatedAt)>stamp(sr.data.updated_at))settingsUpload=true;
+      const ops=[];
+      if(wm.upload.length)ops.push(sb.from('ridelab_workouts').upsert(wm.upload.map(r=>({...r,user_id:user.id})),{onConflict:'user_id,local_id'}));
+      if(rm.upload.length)ops.push(sb.from('ridelab_rest_days').upsert(rm.upload.map(r=>({...r,user_id:user.id})),{onConflict:'user_id,local_id'}));
+      if(settingsUpload)ops.push(sb.from('ridelab_settings').upsert({user_id:user.id,targets:state.targets,updated_at:state.settingsUpdatedAt},{onConflict:'user_id'}));
+      const results=await Promise.all(ops);const err=results.find(r=>r.error)?.error;if(err)throw err;
+      saveState(false);renderAll();
+      const at=new Date();localStorage.setItem('ridelab_last_sync',at.toISOString());setSyncStatus('synced','Synced','Signed in as '+(user.email||'your account')+'. Local changes are backed by Supabase.');
+      $('lastSyncText').textContent='Last sync '+at.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    }catch(err){console.error(err);setSyncStatus('error','Sync error',err?.message||'Could not sync. Local data is still safe.');if(!silent)alert('RideLab cloud sync: '+(err?.message||'Unknown error'));}
+    finally{syncInFlight=false;}
+  }
+  async function sendMagicLink(){
+    const cfg=getSyncConfig(), email=$('syncEmail').value.trim(); if(!cfg.url||!cfg.key){alert('Save your Supabase URL and publishable key first.');return;} if(!email){alert('Enter your email first.');return;}
+    try{const sb=await getCloudClient();const redirectTo=location.origin+location.pathname;const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});if(error)throw error;setSyncConfig({...cfg,email});setSyncStatus('offline','Check your email','Open the RideLab sign-in link on this device.');alert('Sign-in link sent. Open it from your email, then RideLab will finish signing you in.');}catch(err){alert(err?.message||'Could not send sign-in link.');}
+  }
+  async function signOutCloud(){try{const sb=await getCloudClient();await sb.auth.signOut();setSyncStatus('offline','Signed out','Your local copy stays on this device.');}catch(err){alert(err?.message||'Could not sign out.');}}
+
+  function csvCell(v){ if(v===null||v===undefined)return ''; const s=String(v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+  function download(name,text,type){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  $('setupSql').textContent=SETUP_SQL;
+  $('openSetupBtn').onclick=()=>{$('setupDialog').showModal();};
+  $('closeSetup').onclick=$('doneSetupBtn').onclick=()=>$('setupDialog').close();
+  $('copySqlBtn').onclick=async()=>{const ok=await copyText(SETUP_SQL);$('copySqlBtn').textContent=ok?'Copied':'Copy failed';setTimeout(()=>$('copySqlBtn').textContent='Copy SQL',1200);};
+  $('saveSyncConfig').onclick=()=>{const cfg={url:$('syncUrl').value.trim(),key:$('syncKey').value.trim(),email:$('syncEmail').value.trim()};setSyncConfig(cfg);setSyncStatus('offline','Cloud ready','Connection saved. Sign in by email next.');};
+  $('magicLinkBtn').onclick=sendMagicLink;$('syncNowBtn').onclick=()=>syncCloud(false);$('signOutBtn').onclick=signOutCloud;
+  $('syncStatusBtn').onclick=()=>{qsa('.tab').find(x=>x.dataset.page==='data')?.click();setTimeout(()=>$('syncUrl').scrollIntoView({behavior:'smooth',block:'center'}),50);};
+  window.addEventListener('online',()=>{renderSyncUI();scheduleCloudSync();});window.addEventListener('offline',renderSyncUI);
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installAppBtn').hidden=false;});
+  $('installAppBtn').onclick=async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('installAppBtn').hidden=true;};
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  setTimeout(async()=>{const cfg=getSyncConfig();if(cfg.url&&cfg.key&&navigator.onLine){try{const sb=await getCloudClient();const {data}=await sb.auth.getSession();if(data.session)syncCloud(true);else renderSyncUI();}catch(e){renderSyncUI();}}},300);
+  window.addEventListener('resize',()=>{if($('dashboard').classList.contains('active'))drawCharts();});
+  saveState(false); renderAll();
+})();
+</script>
+</body>
+</html>
