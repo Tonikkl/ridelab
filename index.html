@@ -18,7 +18,10 @@
     --shadow:0 16px 40px rgba(0,0,0,.28);
   }
   *{box-sizing:border-box}
-  html{background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  html{background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+  body,.app,.page,.card,.grid,.settings,.cloud-card,.cloud-grid,.field,.top-actions{min-width:0;max-width:100%}
+  body{overflow-x:hidden}
+  input,select,textarea{min-width:0;max-width:100%;width:100%}
   body{margin:0; min-height:100vh; background:
       radial-gradient(circle at 15% 0%, rgba(77,210,196,.12), transparent 28%),
       radial-gradient(circle at 85% 0%, rgba(122,168,255,.10), transparent 26%),
@@ -136,8 +139,8 @@
   .today-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px}.today-metric{background:rgba(8,15,29,.48);border:1px solid #283956;border-radius:14px;padding:12px}.today-metric .k{font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:var(--muted)}.today-metric .v{font-weight:850;font-size:18px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .session-list{display:grid;gap:10px}.session-strip{display:grid;grid-template-columns:minmax(150px,1.2fr) repeat(4,minmax(85px,.7fr)) auto;gap:10px;align-items:center;padding:12px;border:1px solid #25344f;border-radius:14px;background:#0e1729}.session-strip .main{min-width:0}.session-strip .title{font-weight:850}.session-strip .sub{font-size:11px;color:var(--muted);margin-top:3px}.session-strip .stat .k{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}.session-strip .stat .v{font-weight:800;font-size:13px;margin-top:2px}
   .mini-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mini-summary .box{padding:12px;border-radius:13px;background:#0f172a;border:1px solid #22304c}.mini-summary .box .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}.mini-summary .box .v{font-size:17px;font-weight:850;margin-top:4px}
-  .cloud-card{margin-top:14px}.cloud-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cloud-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.cloud-state{margin-top:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px;border:1px solid #2b3c5e;border-radius:12px;background:#101a2e}.cloud-state b{display:block;margin-bottom:3px}.cloud-state .small{line-height:1.45}
-  .sql-box{white-space:pre;overflow:auto;max-height:42vh;background:#07101e;border:1px solid #273452;border-radius:12px;padding:12px;color:#cddbf2;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .cloud-card{margin-top:14px;overflow:hidden}.cloud-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-width:0}.cloud-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;min-width:0}.cloud-actions .btn{max-width:100%}.cloud-state{margin-top:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px;border:1px solid #2b3c5e;border-radius:12px;background:#101a2e;min-width:0;overflow-wrap:anywhere}.cloud-state b{display:block;margin-bottom:3px}.cloud-state .small{line-height:1.45;overflow-wrap:anywhere}
+  .sql-box{white-space:pre;overflow:auto;max-width:100%;max-height:42vh;background:#07101e;border:1px solid #273452;border-radius:12px;padding:12px;color:#cddbf2;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   .privacy-note{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
   .desktop-only{display:inline-flex}.install-note{display:none}
   @media(max-width:1000px){
@@ -153,7 +156,7 @@
     #workouts .toolbar{align-items:stretch}#workouts .toolbar .left{display:grid;grid-template-columns:1fr 1fr;flex:1}#workouts .toolbar .right{width:100%;justify-content:space-between}
     #workouts .input,#workouts .select{min-width:0;width:100%}.detail-grid{grid-template-columns:1fr}.share-choice{grid-template-columns:1fr}
     .today-hero{padding:18px}.today-hero h2{font-size:27px}.today-metrics{grid-template-columns:repeat(2,1fr)}.today-metric:last-child{grid-column:span 2}
-    .session-strip{grid-template-columns:1fr auto}.session-strip .stat{display:none}.cloud-grid{grid-template-columns:1fr}.cloud-state{flex-direction:column}.desktop-only{display:none}
+    .session-strip{grid-template-columns:1fr auto}.session-strip .stat{display:none}.cloud-grid{grid-template-columns:1fr}.cloud-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.cloud-actions .btn{width:100%;padding-left:8px;padding-right:8px}.cloud-state{flex-direction:column}.desktop-only{display:none}
     .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin:8px -14px 16px;padding:8px 14px;background:rgba(11,16,32,.96);backdrop-filter:blur(12px)}
   }
 </style>
@@ -308,6 +311,7 @@
     <div class="card cloud-card">
       <h2>Cloud sync <span class="pill" id="cloudModePill" style="vertical-align:middle;margin-left:6px">Optional</span></h2>
       <p class="muted small">RideLab still saves locally first. Once you connect Supabase, each workout, rest day and target setting can sync between your devices.</p>
+      <div class="notice" style="margin-bottom:12px">Personal setup: for the first account, turn off <strong>Confirm Email</strong> in Supabase, create your RideLab account here, then turn off <strong>Allow new users to sign up</strong>. After that, normal sign-in is email + password and no auth email is needed.</div>
       <div class="cloud-grid">
         <div class="field"><label>Supabase project URL</label><input class="input" id="syncUrl" placeholder="https://xxxxx.supabase.co" autocomplete="off"></div>
         <div class="field"><label>Publishable / anon key</label><input class="input" id="syncKey" placeholder="sb_publishable_… or anon key" autocomplete="off"></div>
