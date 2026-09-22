@@ -311,7 +311,7 @@
     <div class="card cloud-card">
       <h2>Cloud sync <span class="pill" id="cloudModePill" style="vertical-align:middle;margin-left:6px">Optional</span></h2>
       <p class="muted small">RideLab still saves locally first. Once you connect Supabase, each workout, rest day and target setting can sync between your devices.</p>
-      <div class="notice" style="margin-bottom:12px">Personal setup: for the first account, turn off <strong>Confirm Email</strong> in Supabase, create your RideLab account here, then turn off <strong>Allow new users to sign up</strong>. After that, normal sign-in is email + password and no auth email is needed.</div>
+      <div class="notice" style="margin-bottom:12px">One-time setup: in Supabase go to <strong>Authentication → Users → Add user → Create new user</strong>, enter the same email/password you want to use here, and enable <strong>Auto Confirm User</strong>. After that, RideLab only needs Sign in.</div>
       <div class="cloud-grid">
         <div class="field"><label>Supabase project URL</label><input class="input" id="syncUrl" placeholder="https://xxxxx.supabase.co" autocomplete="off"></div>
         <div class="field"><label>Publishable / anon key</label><input class="input" id="syncKey" placeholder="sb_publishable_… or anon key" autocomplete="off"></div>
@@ -321,7 +321,6 @@
       <div class="cloud-actions">
         <button class="btn" id="saveSyncConfig" type="button">Save connection</button>
         <button class="btn primary" id="signInBtn" type="button">Sign in</button>
-        <button class="btn secondary" id="createAccountBtn" type="button">Create account</button>
         <button class="btn" id="syncNowBtn" type="button">Sync now</button>
         <button class="btn" id="signOutBtn" type="button">Sign out</button>
         <button class="btn ghost" id="openSetupBtn" type="button">Database setup</button>
@@ -1100,23 +1099,6 @@ using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
       await syncCloud(false);
     }catch(err){alert(err?.message||'Could not sign in.');}
   }
-  async function createPasswordAccount(){
-    try{
-      const {cfg,email,password}=authCredentials();
-      const sb=await getCloudClient();
-      const {data,error}=await sb.auth.signUp({email,password});
-      if(error)throw error;
-      setSyncConfig({...cfg,email});
-      $('syncPassword').value='';
-      if(data?.session){
-        setSyncStatus('syncing','Account created','Signed in. Syncing RideLab…');
-        await syncCloud(false);
-      } else {
-        setSyncStatus('offline','Confirm your email','Open the confirmation email once, then return to RideLab and sign in with your password.');
-        alert('Account created. Supabase sent a confirmation email. Open that link once, then come back to RideLab and sign in with your password.');
-      }
-    }catch(err){alert(err?.message||'Could not create the account.');}
-  }
   async function signOutCloud(){try{const sb=await getCloudClient();await sb.auth.signOut();if($('syncPassword'))$('syncPassword').value='';setSyncStatus('offline','Signed out','Your local copy stays on this device.');}catch(err){alert(err?.message||'Could not sign out.');}}
 
   function csvCell(v){ if(v===null||v===undefined)return ''; const s=String(v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
@@ -1126,7 +1108,7 @@ using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
   $('closeSetup').onclick=$('doneSetupBtn').onclick=()=>$('setupDialog').close();
   $('copySqlBtn').onclick=async()=>{const ok=await copyText(SETUP_SQL);$('copySqlBtn').textContent=ok?'Copied':'Copy failed';setTimeout(()=>$('copySqlBtn').textContent='Copy SQL',1200);};
   $('saveSyncConfig').onclick=()=>{const cfg={url:$('syncUrl').value.trim(),key:$('syncKey').value.trim(),email:$('syncEmail').value.trim()};setSyncConfig(cfg);setSyncStatus('offline','Cloud ready','Connection saved. Sign in with your email and password.');};
-  $('signInBtn').onclick=signInPassword;$('createAccountBtn').onclick=createPasswordAccount;$('syncPassword').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();signInPassword();}});$('syncNowBtn').onclick=()=>syncCloud(false);$('signOutBtn').onclick=signOutCloud;
+  $('signInBtn').onclick=signInPassword;$('syncPassword').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();signInPassword();}});$('syncNowBtn').onclick=()=>syncCloud(false);$('signOutBtn').onclick=signOutCloud;
   $('syncStatusBtn').onclick=()=>{qsa('.tab').find(x=>x.dataset.page==='data')?.click();setTimeout(()=>$('syncUrl').scrollIntoView({behavior:'smooth',block:'center'}),50);};
   window.addEventListener('online',()=>{renderSyncUI();scheduleCloudSync();});window.addEventListener('offline',renderSyncUI);
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installAppBtn').hidden=false;});
