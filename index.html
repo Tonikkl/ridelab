@@ -93,6 +93,7 @@
   .field.span2{grid-column:span 2}.field.span3{grid-column:span 3}.field.span4{grid-column:span 4}
   .form-section{grid-column:1/-1;margin-top:8px;padding-top:14px;border-top:1px solid var(--line)}
   .form-section h3{margin:0 0 10px;color:#9ce8de;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+  #workoutForm.outdoor-mode .bike-only{display:none!important}
   .helper{font-size:11px;color:var(--muted);line-height:1.45}
   .notice{padding:10px 12px;border-radius:12px;background:#101a2e;border:1px solid #2b3c5e;color:#b7c7e4;font-size:12px}
   .settings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
@@ -198,8 +199,8 @@
       <div class="today-metrics">
         <div class="today-metric"><div class="k">Time</div><div class="v" id="todayTime">0 min</div></div>
         <div class="today-metric"><div class="k">Distance</div><div class="v" id="todayDistance">0 km</div></div>
-        <div class="today-metric"><div class="k">Bike kcal</div><div class="v" id="todayBikeKcal">0</div></div>
-        <div class="today-metric"><div class="k">Watch active</div><div class="v" id="todayWatchKcal">—</div></div>
+        <div class="today-metric"><div class="k">Calories</div><div class="v" id="todayCalories">0</div></div>
+        <div class="today-metric"><div class="k">Avg HR</div><div class="v" id="todayHr">—</div></div>
         <div class="today-metric"><div class="k">Avg speed</div><div class="v" id="todaySpeed">—</div></div>
       </div>
     </div>
@@ -232,7 +233,7 @@
     <div class="grid two">
       <div class="card"><h3>Weekly distance</h3><canvas class="chart" id="chartDistance"></canvas><div class="chart-legend">km</div></div>
       <div class="card"><h3>Weekly training minutes</h3><canvas class="chart" id="chartMinutes"></canvas><div class="chart-legend">minutes</div></div>
-      <div class="card"><h3>Weekly calories</h3><canvas class="chart" id="chartCalories"></canvas><div class="chart-legend">Bike kcal · Watch active kcal</div></div>
+      <div class="card"><h3>Weekly calories</h3><canvas class="chart" id="chartCalories"></canvas><div class="chart-legend">Watch active kcal when available · bike fallback</div></div>
       <div class="card"><h3>Training load</h3><canvas class="chart" id="chartLoad"></canvas><div class="chart-legend">RideLab load estimate</div></div>
     </div>
   </section>
@@ -254,7 +255,7 @@
     <div class="table-shell desktop-workouts">
       <table id="workoutTable">
         <thead><tr class="cols">
-          <th>Date</th><th>Ride</th><th>Type</th><th>Effort</th><th>Time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Watch HR</th><th>Avg speed</th><th>Match</th><th>Notes</th><th>Actions</th>
+          <th>Date</th><th>Ride</th><th>Type</th><th>Effort</th><th>Time</th><th>Distance</th><th>Calories</th><th>Watch HR</th><th>Avg speed</th><th>Match</th><th>Notes</th><th>Actions</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -266,7 +267,7 @@
     <div class="table-shell">
       <table id="dailyTable">
         <thead><tr class="cols">
-          <th>Date</th><th>Status</th><th>Workouts</th><th>Bike time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Watch total</th><th>RideLab load</th><th>Weighted speed</th><th>Weighted Watch HR</th><th>Actions</th>
+          <th>Date</th><th>Status</th><th>Workouts</th><th>Training time</th><th>Distance</th><th>Calories</th><th>Watch active</th><th>Watch total</th><th>RideLab load</th><th>Avg speed</th><th>Weighted Watch HR</th><th>Actions</th>
         </tr></thead><tbody></tbody>
       </table>
     </div>
@@ -276,7 +277,7 @@
     <div class="table-shell">
       <table id="weeklyTable">
         <thead><tr class="cols">
-          <th>Week</th><th>Workouts</th><th>Active days</th><th>Training time</th><th>Distance</th><th>Bike kcal</th><th>Watch active</th><th>Avg distance</th><th>Avg duration</th><th>Avg calc speed</th><th>RideLab load</th><th>Prev week distance</th><th>WoW distance</th>
+          <th>Week</th><th>Workouts</th><th>Active days</th><th>Training time</th><th>Distance</th><th>Calories</th><th>Watch active</th><th>Avg distance</th><th>Avg duration</th><th>Avg speed</th><th>RideLab load</th><th>Prev week distance</th><th>WoW distance</th>
         </tr></thead><tbody></tbody>
       </table>
     </div>
@@ -350,19 +351,20 @@
         <div class="field"><label>Workout type</label><select class="select" id="fType"><option value="Auto" selected>Auto (recommended)</option><option>Recovery</option><option>Easy</option><option>Endurance</option><option>Tempo</option><option>Intervals</option><option>Free Ride</option><option>Other</option></select><div class="helper" id="fTypeHint">RideLab will keep this simple.</div></div>
         <div class="field span3"><label>Notes</label><textarea class="textarea" id="fNotes" rows="2" placeholder="Optional · e.g. intervals, sprint session, easy spin"></textarea></div>
 
-        <div class="form-section"><h3>Bike</h3></div>
-        <div class="field"><label>Total time</label><input class="input" id="fBikeTime" placeholder="30:55 or 1:05:20"></div>
-        <div class="field"><label>Distance km</label><input class="input" id="fDistance" type="number" min="0" step="0.01"></div>
-        <div class="field"><label>Bike calories</label><input class="input" id="fBikeKcal" type="number" min="0" step="1"></div>
-        <div class="field"><label>Displayed speed (optional)</label><input class="input" id="fDisplaySpeed" type="number" min="0" step="0.1"></div>
-        <div class="field"><label>Watt (meaningful avg only)</label><input class="input" id="fWatt" type="number" min="0" step="1"></div>
-        <div class="field"><label>Bike pulse (meaningful avg only)</label><input class="input" id="fPulse" type="number" min="0" step="1"></div>
-        <div class="field"><label>RPM (meaningful avg only)</label><input class="input" id="fRpm" type="number" min="0" step="1"></div>
-        <div class="field"><label>Calculated avg speed</label><input class="input" id="fCalcSpeed" readonly placeholder="Calculated"></div>
-        <div class="field span4"><div class="helper">Do not enter stopped-console 0 values for speed, watt, pulse or RPM unless zero is genuinely meaningful workout data. Average speed is calculated from distance ÷ total time.</div></div>
+        <div class="form-section bike-only"><h3>Bike console</h3></div>
+        <div class="field bike-only"><label>Total time</label><input class="input" id="fBikeTime" placeholder="30:55 or 1:05:20"></div>
+        <div class="field bike-only"><label>Distance km</label><input class="input" id="fDistance" type="number" min="0" step="0.01"></div>
+        <div class="field bike-only"><label>Bike calories</label><input class="input" id="fBikeKcal" type="number" min="0" step="1"></div>
+        <div class="field bike-only"><label>Displayed speed (optional)</label><input class="input" id="fDisplaySpeed" type="number" min="0" step="0.1"></div>
+        <div class="field bike-only"><label>Watt (meaningful avg only)</label><input class="input" id="fWatt" type="number" min="0" step="1"></div>
+        <div class="field bike-only"><label>Bike pulse (meaningful avg only)</label><input class="input" id="fPulse" type="number" min="0" step="1"></div>
+        <div class="field bike-only"><label>RPM (meaningful avg only)</label><input class="input" id="fRpm" type="number" min="0" step="1"></div>
+        <div class="field bike-only"><label>Calculated avg speed</label><input class="input" id="fCalcSpeed" readonly placeholder="Calculated"></div>
+        <div class="field span4 bike-only"><div class="helper">Console values are used for indoor rides and comparison only. Average console speed is calculated from console distance ÷ console time.</div></div>
 
-        <div class="form-section"><h3>Apple Watch</h3></div>
+        <div class="form-section"><h3 id="watchSectionTitle">Apple Watch</h3></div>
         <div class="field"><label>Total time</label><input class="input" id="fWatchTime" placeholder="30:55 or 1:05:20"></div>
+        <div class="field"><label>Distance km</label><input class="input" id="fWatchDistance" type="number" min="0" step="0.01"></div>
         <div class="field"><label>Active kcal</label><input class="input" id="fActiveKcal" type="number" min="0" step="1"></div>
         <div class="field"><label>Total kcal</label><input class="input" id="fTotalKcal" type="number" min="0" step="1"></div>
         <div class="field"><label>Average HR</label><input class="input" id="fAvgHr" type="number" min="0" step="1"></div>
@@ -494,8 +496,21 @@
     if(!isNum(sec)) return '—';
     return (Number(sec)/60).toFixed(0)+' min';
   }
+  function sessionTime(w){
+    return isNum(w.watchTimeSec)&&Number(w.watchTimeSec)>0 ? Number(w.watchTimeSec) : (isNum(w.bikeTimeSec)&&Number(w.bikeTimeSec)>0 ? Number(w.bikeTimeSec) : null);
+  }
+  function sessionDistance(w){
+    if(w.source==='Outdoor') return isNum(w.watchDistanceKm)?Number(w.watchDistanceKm):(isNum(w.distanceKm)?Number(w.distanceKm):null);
+    return isNum(w.distanceKm)?Number(w.distanceKm):(isNum(w.watchDistanceKm)?Number(w.watchDistanceKm):null);
+  }
+  function sessionCalories(w){
+    return isNum(w.activeKcal)?Number(w.activeKcal):(isNum(w.bikeKcal)?Number(w.bikeKcal):null);
+  }
   function avgSpeed(w){
-    return isNum(w.distanceKm)&&isNum(w.bikeTimeSec)&&Number(w.bikeTimeSec)>0 ? Number(w.distanceKm)/(Number(w.bikeTimeSec)/3600) : null;
+    if(w.source==='Outdoor' && isNum(w.watchDistanceKm) && isNum(w.watchTimeSec) && Number(w.watchTimeSec)>0) return Number(w.watchDistanceKm)/(Number(w.watchTimeSec)/3600);
+    if(w.source!=='Outdoor' && isNum(w.distanceKm) && isNum(w.bikeTimeSec) && Number(w.bikeTimeSec)>0) return Number(w.distanceKm)/(Number(w.bikeTimeSec)/3600);
+    const d=sessionDistance(w), t=sessionTime(w);
+    return isNum(d)&&isNum(t)&&Number(t)>0 ? Number(d)/(Number(t)/3600) : null;
   }
   function effortFromScore(score){
     if(!isNum(score)) return '';
@@ -521,14 +536,14 @@
     return ({'Easy':2,'Moderate':5,'Hard':7.5,'All Out':9.5})[w.effortLabel] ?? null;
   }
   function trainingLoad(w){
-    const dur=isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):null;
+    const dur=sessionTime(w);
     const effort=effortScore(w);
     return isNum(effort)&&dur!==null ? Number(effort)*(dur/60) : null;
   }
   function inferWorkoutType(w){
     const note=(w.notes||'').toLowerCase();
     if(/interval|intervals|sprint|sprints|hiit|tabata|repeats/.test(note)) return 'Intervals';
-    const effort=w.effortLabel||effortFromScore(w.rpe), mins=(isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):0)/60;
+    const effort=w.effortLabel||effortFromScore(w.rpe), mins=(sessionTime(w)||0)/60;
     if(effort==='Easy') return mins>0 && mins<=30 ? 'Recovery' : 'Easy';
     if(effort==='Moderate') return mins>=25 ? 'Endurance' : 'Easy';
     if(effort==='Hard') return 'Tempo';
@@ -605,15 +620,15 @@
     return dates.map(date=>{
       const ws=map.get(date)||[];
       if(!ws.length) return {date,status:'Rest Day',rest:true,note:restMap.get(date)?.note||''};
-      const bikeSecs=sum(ws,'bikeTimeSec'), distance=sum(ws,'distanceKm'), bikeKcal=sum(ws,'bikeKcal'),
-            active=sum(ws,'activeKcal'), total=sum(ws,'totalKcal'), load=sumCalc(ws,trainingLoad);
+      const bikeSecs=sumCalc(ws,sessionTime), distance=sumCalc(ws,sessionDistance), calories=sumCalc(ws,sessionCalories),
+            bikeKcal=sum(ws,'bikeKcal'), active=sum(ws,'activeKcal'), total=sum(ws,'totalKcal'), load=sumCalc(ws,trainingLoad);
       const speed = bikeSecs>0 && distance!==null ? distance/(bikeSecs/3600) : null;
       let hrNum=0, hrDen=0;
       ws.forEach(w=>{
         const wt=isNum(w.watchTimeSec)?Number(w.watchTimeSec):null;
         if(isNum(w.avgHR)&&wt>0){hrNum+=Number(w.avgHR)*wt;hrDen+=wt;}
       });
-      return {date,status:'Training',rest:false,workouts:ws.length,bikeSecs,distance,bikeKcal,active,total,load,speed,avgHR:hrDen?hrNum/hrDen:null};
+      return {date,status:'Training',rest:false,workouts:ws.length,bikeSecs,distance,calories,bikeKcal,active,total,load,speed,avgHR:hrDen?hrNum/hrDen:null};
     });
   }
   function sum(arr,key){
@@ -635,19 +650,19 @@
     const keys=[...map.keys()].sort();
     return keys.map(wk=>{
       const ws=map.get(wk);
-      const bikeSecs=sum(ws,'bikeTimeSec'), dist=sum(ws,'distanceKm'), bk=sum(ws,'bikeKcal'), ak=sum(ws,'activeKcal'), load=sumCalc(ws,trainingLoad);
+      const bikeSecs=sumCalc(ws,sessionTime), dist=sumCalc(ws,sessionDistance), calories=sumCalc(ws,sessionCalories), bk=sum(ws,'bikeKcal'), ak=sum(ws,'activeKcal'), load=sumCalc(ws,trainingLoad);
       const days=new Set(ws.map(w=>w.date)).size;
       const avgDist=dist!==null?dist/ws.length:null;
-      const durations=ws.map(w=>isNum(w.bikeTimeSec)?Number(w.bikeTimeSec):isNum(w.watchTimeSec)?Number(w.watchTimeSec):null).filter(isNum);
+      const durations=ws.map(sessionTime).filter(isNum);
       const avgDur=durations.length?durations.reduce((a,b)=>a+b,0)/durations.length:null;
       const avgSpd=bikeSecs>0&&dist!==null?dist/(bikeSecs/3600):null;
-      return {wk,ws:ws.length,days,bikeSecs,dist,bk,ak,avgDist,avgDur,avgSpd,load};
+      return {wk,ws:ws.length,days,bikeSecs,dist,calories,bk,ak,avgDist,avgDur,avgSpd,load};
     });
   }
   function currentWeekData(){
     const wk=weekStart(localISO());
     const w=aggregateWeekly().find(x=>x.wk===wk);
-    return w || {wk,ws:0,days:0,bikeSecs:null,dist:null,bk:null,ak:null,avgDist:null,avgDur:null,avgSpd:null,load:null};
+    return w || {wk,ws:0,days:0,bikeSecs:null,dist:null,calories:null,bk:null,ak:null,avgDist:null,avgDur:null,avgSpd:null,load:null};
   }
   function renderAll(){
     renderToday(); renderWorkouts(); renderDaily(); renderWeekly(); renderDashboard(); syncTargets(); renderSyncUI();
@@ -664,11 +679,11 @@
     else {$('todayHeadline').textContent='Ready when you are.';$('todaySub').textContent='No workout logged today.';}
     $('todayTime').textContent=daily&&!daily.rest&&isNum(daily.bikeSecs)?fmtDuration(daily.bikeSecs):'0 min';
     $('todayDistance').textContent=daily&&!daily.rest&&isNum(daily.distance)?Number(daily.distance).toFixed(2)+' km':'0 km';
-    $('todayBikeKcal').textContent=daily&&!daily.rest&&isNum(daily.bikeKcal)?Math.round(daily.bikeKcal):'0';
-    $('todayWatchKcal').textContent=daily&&!daily.rest&&isNum(daily.active)?Math.round(daily.active):'—';
+    $('todayCalories').textContent=daily&&!daily.rest&&isNum(daily.calories)?Math.round(daily.calories):'0';
+    $('todayHr').textContent=daily&&!daily.rest&&isNum(daily.avgHR)?Math.round(daily.avgHR)+' bpm':'—';
     $('todaySpeed').textContent=daily&&!daily.rest&&isNum(daily.speed)?Number(daily.speed).toFixed(1)+' km/h':'—';
     $('todaySessionCount').textContent=ws.length?`${ws.length} session${ws.length===1?'':'s'}`:(rest?'Rest day':'Nothing yet');
-    $('todaySessions').innerHTML=ws.length?ws.map(w=>`<div class="session-strip"><div class="main"><div class="title">${esc(resolvedType(w))} ${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</div><div class="sub">${w.startTime||'Time not entered'} · ${esc(w.source||'Indoor')}</div></div><div class="stat"><div class="k">Time</div><div class="v">${fmtDuration(w.bikeTimeSec)}</div></div><div class="stat"><div class="k">Distance</div><div class="v">${val(w.distanceKm,2,' km')}</div></div><div class="stat"><div class="k">Bike kcal</div><div class="v">${val(w.bikeKcal)}</div></div><div class="stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="row-actions"><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button></div></div>`).join(''):(rest?`<div class="card"><span class="pill rest">Rest Day</span>${rest.note?`<div class="workout-note" style="margin-top:10px">${esc(rest.note)}</div>`:''}</div>`:'<div class="card empty">Nothing logged yet. Add the ride after you finish and copy the numbers from the bike / Apple Watch.</div>');
+    $('todaySessions').innerHTML=ws.length?ws.map(w=>`<div class="session-strip"><div class="main"><div class="title">${esc(resolvedType(w))} ${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</div><div class="sub">${w.startTime||'Time not entered'} · ${esc(w.source||'Indoor')}</div></div><div class="stat"><div class="k">Time</div><div class="v">${fmtDuration(sessionTime(w))}</div></div><div class="stat"><div class="k">Distance</div><div class="v">${val(sessionDistance(w),2,' km')}</div></div><div class="stat"><div class="k">Calories</div><div class="v">${val(sessionCalories(w))}</div></div><div class="stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="row-actions"><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button></div></div>`).join(''):(rest?`<div class="card"><span class="pill rest">Rest Day</span>${rest.note?`<div class="workout-note" style="margin-top:10px">${esc(rest.note)}</div>`:''}</div>`:'<div class="card empty">Nothing logged yet. Add the ride after you finish and copy the numbers from the bike / Apple Watch.</div>');
     const cw=currentWeekData();
     $('todayWeekSummary').innerHTML=`<div class="box"><div class="k">Workouts</div><div class="v">${cw.ws}</div></div><div class="box"><div class="k">Time</div><div class="v">${isNum(cw.bikeSecs)?Math.round(cw.bikeSecs/60):0} min</div></div><div class="box"><div class="k">Distance</div><div class="v">${isNum(cw.dist)?cw.dist.toFixed(1):'0.0'} km</div></div>`;
     const last=[...state.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.startTime||'').localeCompare(a.startTime||''))[0];
@@ -681,38 +696,38 @@
     ws=ws.filter(w=>(!src||w.source===src) && (!term||[resolvedType(w),w.type,w.notes,w.date,w.effortLabel].join(' ').toLowerCase().includes(term)));
     $('workoutCount').textContent=`${ws.length} workout${ws.length===1?'':'s'}`;
     if(!ws.length){
-      tb.innerHTML='<tr><td colspan="13" class="empty">No workouts match this view.</td></tr>';
+      tb.innerHTML='<tr><td colspan="12" class="empty">No workouts match this view.</td></tr>';
       cards.innerHTML='<div class="empty workout-card">No workouts match this view.</div>';
       return;
     }
     tb.innerHTML=ws.map(w=>{
-      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w), detailId='detail-'+w.id;
+      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w), detailId='detail-'+w.id, t=sessionTime(w), d=sessionDistance(w), kcal=sessionCalories(w);
       return `<tr class="workout-row">
         <td>${fmtDate(w.date)}</td>
         <td><span class="pill ${w.source==='Outdoor'?'outdoor':'indoor'}">${w.source||'Indoor'}</span></td>
         <td>${esc(typ)}${w.typeMode==='auto'?'<div class="small muted">Auto</div>':''}</td>
         <td>${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</td>
-        <td>${fmtDuration(w.bikeTimeSec)}</td><td>${val(w.distanceKm,2,' km')}</td><td>${val(w.bikeKcal)}</td><td>${val(w.activeKcal)}</td><td>${val(w.avgHR)}</td><td>${val(a,1,' km/h')}</td><td>${flagHtml(r.level)}</td>
+        <td>${fmtDuration(t)}</td><td>${val(d,2,' km')}</td><td>${val(kcal)}</td><td>${val(w.avgHR)}</td><td>${val(a,1,' km/h')}</td><td>${flagHtml(r.level)}</td>
         <td class="notes-cell" title="${esc(w.notes||'')}">${esc(w.notes||'—')}</td>
         <td><div class="row-actions"><button class="iconbtn" onclick="RideLab.toggleDetails('${w.id}')">Details</button><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button></div></td>
       </tr>
-      <tr class="detail-row" id="${detailId}"><td colspan="13">
+      <tr class="detail-row" id="${detailId}"><td colspan="12">
         <div class="detail-grid">
-          <div class="detail-box"><h4>Bike</h4><div class="detail-list"><span>Session</span><b>${sm[w.id]||'—'}</b><span>Start</span><b>${w.startTime||'—'}</b><span>Console speed</span><b>${val(w.displayedSpeed,1,' km/h')}</b><span>Calculated speed</span><b>${val(a,2,' km/h')}</b><span>Watt</span><b>${val(w.watt)}</b><span>Pulse</span><b>${val(w.pulse)}</b><span>RPM</span><b>${val(w.rpm)}</b><span>RideLab load</span><b>${val(load,0)}</b></div></div>
-          <div class="detail-box"><h4>Apple Watch</h4><div class="detail-list"><span>Time</span><b>${fmtDuration(w.watchTimeSec)}</b><span>Active kcal</span><b>${val(w.activeKcal)}</b><span>Total kcal</span><b>${val(w.totalKcal)}</b><span>Average HR</span><b>${val(w.avgHR)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Effort</span><b>${esc(w.effortLabel||effortFromScore(w.rpe)||'—')}</b></div></div>
+          <div class="detail-box"><h4>Bike console</h4><div class="detail-list"><span>Session</span><b>${sm[w.id]||'—'}</b><span>Start</span><b>${w.startTime||'—'}</b><span>Time</span><b>${fmtDuration(w.bikeTimeSec)}</b><span>Distance</span><b>${val(w.distanceKm,2,' km')}</b><span>Calories</span><b>${val(w.bikeKcal)}</b><span>Console speed</span><b>${val(w.displayedSpeed,1,' km/h')}</b><span>Watt</span><b>${val(w.watt)}</b><span>Pulse</span><b>${val(w.pulse)}</b><span>RPM</span><b>${val(w.rpm)}</b><span>RideLab load</span><b>${val(load,0)}</b></div></div>
+          <div class="detail-box"><h4>Apple Watch</h4><div class="detail-list"><span>Time</span><b>${fmtDuration(w.watchTimeSec)}</b><span>Distance</span><b>${val(w.watchDistanceKm,2,' km')}</b><span>Active kcal</span><b>${val(w.activeKcal)}</b><span>Total kcal</span><b>${val(w.totalKcal)}</b><span>Average HR</span><b>${val(w.avgHR)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Effort</span><b>${esc(w.effortLabel||effortFromScore(w.rpe)||'—')}</b></div></div>
           <div class="detail-box"><h4>Bike ↔ Watch</h4><div class="detail-list"><span>Time difference</span><b>${isNum(r.td)?fmtDuration(r.td):'—'}</b><span>Time difference</span><b>${val(r.tp,1,'%')}</b><span>Active kcal difference</span><b>${isNum(r.ad)?val(r.ad)+' · '+val(r.ap,1,'%'):'—'}</b><span>Total kcal difference</span><b>${isNum(r.tt)?val(r.tt)+' · '+val(r.ttp,1,'%'):'—'}</b><span>HR difference</span><b>${val(r.hd)}</b><span>Comparison</span><b>${flagHtml(r.level)}</b></div><div class="card-actions"><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button><button class="iconbtn danger" onclick="RideLab.del('${w.id}')">Delete</button></div></div>
         </div>
       </td></tr>`;
     }).join('');
 
     cards.innerHTML=ws.map(w=>{
-      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w);
+      const r=rec(w), a=avgSpeed(w), load=trainingLoad(w), typ=resolvedType(w), t=sessionTime(w), d=sessionDistance(w), kcal=sessionCalories(w);
       return `<article class="workout-card">
         <div class="workout-card-head"><div><div class="workout-card-title">${esc(typ)}${w.typeMode==='auto'?' <span class="small muted">· Auto</span>':''}</div><div class="workout-card-date">${fmtDate(w.date)}${w.startTime?' · '+w.startTime:''}</div></div><div>${effortHtml(w.effortLabel||effortFromScore(w.rpe))}</div></div>
-        <div class="workout-stats"><div class="workout-stat"><div class="k">Time</div><div class="v">${fmtDuration(w.bikeTimeSec)}</div></div><div class="workout-stat"><div class="k">Distance</div><div class="v">${val(w.distanceKm,2,' km')}</div></div><div class="workout-stat"><div class="k">Bike kcal</div><div class="v">${val(w.bikeKcal)}</div></div><div class="workout-stat"><div class="k">Watch kcal</div><div class="v">${val(w.activeKcal)}</div></div><div class="workout-stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="workout-stat"><div class="k">Avg speed</div><div class="v">${val(a,1,' km/h')}</div></div></div>
+        <div class="workout-stats"><div class="workout-stat"><div class="k">Time</div><div class="v">${fmtDuration(t)}</div></div><div class="workout-stat"><div class="k">Distance</div><div class="v">${val(d,2,' km')}</div></div><div class="workout-stat"><div class="k">Calories</div><div class="v">${val(kcal)}</div></div><div class="workout-stat"><div class="k">Watch HR</div><div class="v">${val(w.avgHR,0,' bpm')}</div></div><div class="workout-stat"><div class="k">Avg speed</div><div class="v">${val(a,1,' km/h')}</div></div><div class="workout-stat"><div class="k">RideLab load</div><div class="v">${val(load,0)}</div></div></div>
         ${w.notes?`<div class="workout-note">${esc(w.notes)}</div>`:''}
         <div class="card-actions"><button class="iconbtn" onclick="RideLab.edit('${w.id}')">Edit</button><button class="iconbtn" onclick="RideLab.shareWorkout('${w.id}')">Share</button></div>
-        <details class="mobile-details"><summary>More details</summary><div class="detail-list"><span>Ride</span><b>${esc(w.source||'Indoor')}</b><span>RideLab load</span><b>${val(load,0)}</b><span>Watch total kcal</span><b>${val(w.totalKcal)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Bike/Watch match</span><b>${flagHtml(r.level)}</b><span>Watt</span><b>${val(w.watt)}</b><span>RPM</span><b>${val(w.rpm)}</b></div><div class="card-actions"><button class="iconbtn danger" onclick="RideLab.del('${w.id}')">Delete workout</button></div></details>
+        <details class="mobile-details"><summary>More details</summary><div class="detail-list"><span>Ride</span><b>${esc(w.source||'Indoor')}</b><span>Bike time</span><b>${fmtDuration(w.bikeTimeSec)}</b><span>Bike distance</span><b>${val(w.distanceKm,2,' km')}</b><span>Bike kcal</span><b>${val(w.bikeKcal)}</b><span>Watch time</span><b>${fmtDuration(w.watchTimeSec)}</b><span>Watch distance</span><b>${val(w.watchDistanceKm,2,' km')}</b><span>Watch active kcal</span><b>${val(w.activeKcal)}</b><span>Watch total kcal</span><b>${val(w.totalKcal)}</b><span>HR range</span><b>${isNum(w.hrMin)||isNum(w.hrMax)?`${val(w.hrMin)}–${val(w.hrMax)}`:'—'}</b><span>Bike/Watch match</span><b>${flagHtml(r.level)}</b><span>Watt</span><b>${val(w.watt)}</b><span>RPM</span><b>${val(w.rpm)}</b></div><div class="card-actions"><button class="iconbtn danger" onclick="RideLab.del('${w.id}')">Delete workout</button></div></details>
       </article>`;
     }).join('');
   }
@@ -723,7 +738,7 @@
     tb.innerHTML=ds.map(d=>d.rest?`<tr>
       <td>${fmtDate(d.date)}</td><td><span class="pill rest">Rest Day</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="text">${esc(d.note||'—')}</td><td><button class="iconbtn" onclick="RideLab.delRest('${d.date}')">Remove</button></td>
     </tr>`:`<tr>
-      <td>${fmtDate(d.date)}</td><td><span class="pill indoor">Training</span></td><td>${d.workouts}</td><td>${fmtDuration(d.bikeSecs)}</td><td>${val(d.distance,2,' km')}</td><td>${val(d.bikeKcal)}</td><td>${val(d.active)}</td><td>${val(d.total)}</td><td>${val(d.load,0)}</td><td>${val(d.speed,2,' km/h')}</td><td>${val(d.avgHR,0)}</td><td>—</td>
+      <td>${fmtDate(d.date)}</td><td><span class="pill indoor">Training</span></td><td>${d.workouts}</td><td>${fmtDuration(d.bikeSecs)}</td><td>${val(d.distance,2,' km')}</td><td>${val(d.calories)}</td><td>${val(d.active)}</td><td>${val(d.total)}</td><td>${val(d.load,0)}</td><td>${val(d.speed,2,' km/h')}</td><td>${val(d.avgHR,0)}</td><td>—</td>
     </tr>`).join('');
   }
   function renderWeekly(){
@@ -735,7 +750,7 @@
       const wow=isNum(w.dist)&&isNum(prevDist)&&prevDist!==0?(w.dist-prevDist)/prevDist*100:null;
       return `<tr>
         <td>${fmtShortDate(w.wk)} – ${fmtShortDate(addDays(w.wk,6))}</td><td>${w.ws}</td><td>${w.days}</td><td>${fmtDuration(w.bikeSecs)}</td>
-        <td>${val(w.dist,2,' km')}</td><td>${val(w.bk)}</td><td>${val(w.ak)}</td><td>${val(w.avgDist,2,' km')}</td><td>${fmtDuration(w.avgDur)}</td><td>${val(w.avgSpd,2,' km/h')}</td><td>${val(w.load,0)}</td><td>${val(prevDist,2,' km')}</td><td>${val(wow,1,'%')}</td>
+        <td>${val(w.dist,2,' km')}</td><td>${val(w.calories)}</td><td>${val(w.ak)}</td><td>${val(w.avgDist,2,' km')}</td><td>${fmtDuration(w.avgDur)}</td><td>${val(w.avgSpd,2,' km/h')}</td><td>${val(w.load,0)}</td><td>${val(prevDist,2,' km')}</td><td>${val(wow,1,'%')}</td>
       </tr>`;
     }).join('');
   }
@@ -744,10 +759,10 @@
     $('wkMinutes').textContent=isNum(cw.bikeSecs)?Math.round(cw.bikeSecs/60)+' min':'0 min';
     $('wkSub').textContent=`${cw.ws} workout${cw.ws===1?'':'s'} · ${cw.days} active day${cw.days===1?'':'s'} · ${isNum(cw.dist)?cw.dist.toFixed(1):'0.0'} km`;
     const last30=all.filter(w=>daysBetween(w.date,today)>=0 && daysBetween(w.date,today)<=29);
-    const d30=sum(last30,'distanceKm'), t30=sum(last30,'bikeTimeSec');
+    const d30=sumCalc(last30,sessionDistance), t30=sumCalc(last30,sessionTime);
     $('m30Distance').textContent=isNum(d30)?d30.toFixed(1)+' km':'—';
     $('m30Sub').textContent=`${last30.length} workouts · ${isNum(t30)?Math.round(t30/60):0} min`;
-    const ad=sum(all,'distanceKm'), at=sum(all,'bikeTimeSec');
+    const ad=sumCalc(all,sessionDistance), at=sumCalc(all,sessionTime);
     $('allDistance').textContent=isNum(ad)?ad.toFixed(1)+' km':'—';
     $('allSub').textContent=`${all.length} workouts · ${isNum(at)?Math.round(at/60):0} min`;
     $('wkLoad').textContent=isNum(cw.load)?Math.round(cw.load):'—';
@@ -771,10 +786,10 @@
     const ws=state.workouts;
     const maxObj=(fn)=>ws.reduce((best,w)=>{const v=fn(w);return isNum(v)&&(!best||v>best.v)?{v,w}:best},null);
     const pbs=[
-      ['Longest workout', maxObj(w=>w.bikeTimeSec), x=>fmtDuration(x.v)],
-      ['Longest distance', maxObj(w=>w.distanceKm), x=>Number(x.v).toFixed(2)+' km'],
+      ['Longest workout', maxObj(sessionTime), x=>fmtDuration(x.v)],
+      ['Longest distance', maxObj(sessionDistance), x=>Number(x.v).toFixed(2)+' km'],
       ['Highest avg speed', maxObj(avgSpeed), x=>Number(x.v).toFixed(2)+' km/h'],
-      ['Most bike calories', maxObj(w=>w.bikeKcal), x=>Math.round(x.v)+' kcal'],
+      ['Most calories', maxObj(sessionCalories), x=>Math.round(x.v)+' kcal'],
       ['Highest Watch avg HR', maxObj(w=>w.avgHR), x=>Math.round(x.v)+' bpm']
     ];
     $('pbList').innerHTML=pbs.map(([lab,obj,fmt])=>`<div class="pb"><div class="label">${lab}</div><div class="value">${obj?fmt(obj):'—'}</div><div class="small muted">${obj?fmtShortDate(obj.w.date):'No data'}</div></div>`).join('');
@@ -786,7 +801,7 @@
     const weeks=aggregateWeekly();
     drawLine('chartDistance',weeks.map(w=>({label:fmtShortDate(w.wk),value:w.dist})),['Distance']);
     drawLine('chartMinutes',weeks.map(w=>({label:fmtShortDate(w.wk),value:isNum(w.bikeSecs)?w.bikeSecs/60:null})),['Minutes']);
-    drawMulti('chartCalories',weeks.map(w=>({label:fmtShortDate(w.wk),a:w.bk,b:w.ak})));
+    drawLine('chartCalories',weeks.map(w=>({label:fmtShortDate(w.wk),value:w.calories})));
     drawLine('chartLoad',weeks.map(w=>({label:fmtShortDate(w.wk),value:w.load})),['Load']);
   }
   function prepCanvas(id){
@@ -835,17 +850,18 @@
   function shareWorkoutText(w){
     const line1=`🚴 RideLab · ${fmtShareDate(w.date)}`;
     const meta=[resolvedType(w),w.effortLabel||effortFromScore(w.rpe)].filter(Boolean).join(' · ');
-    const core=[fmtDuration(w.bikeTimeSec),isNum(w.distanceKm)?Number(w.distanceKm).toFixed(2)+' km':null,isNum(avgSpeed(w))?Number(avgSpeed(w)).toFixed(1)+' km/h':null].filter(Boolean).join(' · ');
-    const extra=[isNum(w.bikeKcal)?Math.round(w.bikeKcal)+' kcal':null,isNum(w.avgHR)?Math.round(w.avgHR)+' bpm avg':null].filter(Boolean).join(' · ');
+    const t=sessionTime(w), d=sessionDistance(w), kcal=sessionCalories(w);
+    const core=[fmtDuration(t),isNum(d)?Number(d).toFixed(2)+' km':null,isNum(avgSpeed(w))?Number(avgSpeed(w)).toFixed(1)+' km/h':null].filter(Boolean).join(' · ');
+    const extra=[isNum(kcal)?Math.round(kcal)+' kcal':null,isNum(w.avgHR)?Math.round(w.avgHR)+' bpm avg':null].filter(Boolean).join(' · ');
     return [line1,meta,core,extra].filter(Boolean).join('\n');
   }
   function shareDayText(date){
     const ws=state.workouts.filter(w=>w.date===date);
     if(!ws.length) return `🚴 RideLab · ${date===localISO()?'Today':fmtShareDate(date)}\nNo workouts logged.`;
-    const secs=sum(ws,'bikeTimeSec'), dist=sum(ws,'distanceKm'), kcal=sum(ws,'bikeKcal'), active=sum(ws,'activeKcal');
+    const secs=sumCalc(ws,sessionTime), dist=sumCalc(ws,sessionDistance), kcal=sumCalc(ws,sessionCalories);
     const head=`🚴 RideLab · ${date===localISO()?'Today':fmtShareDate(date)}`;
     const summary=`${ws.length} workout${ws.length===1?'':'s'} · ${fmtDuration(secs)} · ${isNum(dist)?Number(dist).toFixed(2)+' km':'—'}`;
-    const calories=[isNum(kcal)?Math.round(kcal)+' bike kcal':null,isNum(active)?Math.round(active)+' Watch active kcal':null].filter(Boolean).join(' · ');
+    const calories=isNum(kcal)?Math.round(kcal)+' kcal':'';
     return [head,summary,calories].filter(Boolean).join('\n');
   }
   let pendingShareText='';
@@ -865,16 +881,22 @@
     const ok=await copyText(text);alert(ok?'Workout summary copied. Paste it into LINE.':'Could not open sharing or copy the summary.');
   }
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+  function updateSourceFields(){
+    const outdoor=$('fSource').value==='Outdoor';
+    $('workoutForm').classList.toggle('outdoor-mode',outdoor);
+    $('watchSectionTitle').textContent=outdoor?'Apple Watch · ride data':'Apple Watch';
+    $('modalTitle').textContent=$('editId').value?'Edit Workout':(outdoor?'Outdoor Ride':'Add Workout');
+  }
   function openWorkout(source='Indoor',id=null){
-    $('workoutForm').reset(); $('editId').value=''; $('fSource').value=source; $('fDate').value=localISO(); $('fType').value='Auto'; $('modalTitle').textContent=source==='Outdoor'?'Outdoor Ride':'Add Workout';
+    $('workoutForm').reset(); $('editId').value=''; $('fSource').value=source; $('fDate').value=localISO(); $('fType').value='Auto';
     if(id){
       const w=state.workouts.find(x=>x.id===id); if(!w)return;
       $('editId').value=w.id;$('modalTitle').textContent='Edit Workout';$('fDate').value=w.date;$('fStart').value=w.startTime||'';$('fSource').value=w.source||'Indoor';$('fEffort').value=w.effortLabel||effortFromScore(w.rpe)||'';$('fType').value=w.typeMode==='auto'?'Auto':(w.type||'Free Ride');$('fNotes').value=w.notes||'';
       $('fBikeTime').value=isNum(w.bikeTimeSec)?fmtDuration(w.bikeTimeSec):'';$('fDistance').value=isNum(w.distanceKm)?w.distanceKm:'';$('fBikeKcal').value=isNum(w.bikeKcal)?w.bikeKcal:'';$('fDisplaySpeed').value=isNum(w.displayedSpeed)?w.displayedSpeed:'';
       $('fWatt').value=isNum(w.watt)?w.watt:'';$('fPulse').value=isNum(w.pulse)?w.pulse:'';$('fRpm').value=isNum(w.rpm)?w.rpm:'';
-      $('fWatchTime').value=isNum(w.watchTimeSec)?fmtDuration(w.watchTimeSec):'';$('fActiveKcal').value=isNum(w.activeKcal)?w.activeKcal:'';$('fTotalKcal').value=isNum(w.totalKcal)?w.totalKcal:'';$('fAvgHr').value=isNum(w.avgHR)?w.avgHR:'';$('fHrMin').value=isNum(w.hrMin)?w.hrMin:'';$('fHrMax').value=isNum(w.hrMax)?w.hrMax:'';
+      $('fWatchTime').value=isNum(w.watchTimeSec)?fmtDuration(w.watchTimeSec):'';$('fWatchDistance').value=isNum(w.watchDistanceKm)?w.watchDistanceKm:'';$('fActiveKcal').value=isNum(w.activeKcal)?w.activeKcal:'';$('fTotalKcal').value=isNum(w.totalKcal)?w.totalKcal:'';$('fAvgHr').value=isNum(w.avgHR)?w.avgHR:'';$('fHrMin').value=isNum(w.hrMin)?w.hrMin:'';$('fHrMax').value=isNum(w.hrMax)?w.hrMax:'';
     }
-    updateCalcPreview(); updateTypePreview(); $('workoutDialog').showModal();
+    updateSourceFields(); updateCalcPreview(); updateTypePreview(); $('workoutDialog').showModal();
   }
   function updateCalcPreview(){
     const t=parseDuration($('fBikeTime').value), d=n($('fDistance').value);
@@ -893,7 +915,7 @@
     const w={
       id,date:$('fDate').value,startTime:$('fStart').value,source:$('fSource').value,type:'Free Ride',typeMode:autoType?'auto':'manual',effortLabel:$('fEffort').value,rpe:null,notes:$('fNotes').value.trim(),
       bikeTimeSec:parseDuration($('fBikeTime').value),distanceKm:n($('fDistance').value),bikeKcal:n($('fBikeKcal').value),displayedSpeed:n($('fDisplaySpeed').value),watt:n($('fWatt').value),pulse:n($('fPulse').value),rpm:n($('fRpm').value),
-      watchTimeSec:parseDuration($('fWatchTime').value),activeKcal:n($('fActiveKcal').value),totalKcal:n($('fTotalKcal').value),avgHR:n($('fAvgHr').value),hrMin:n($('fHrMin').value),hrMax:n($('fHrMax').value),
+      watchTimeSec:parseDuration($('fWatchTime').value),watchDistanceKm:n($('fWatchDistance').value),activeKcal:n($('fActiveKcal').value),totalKcal:n($('fTotalKcal').value),avgHR:n($('fAvgHr').value),hrMin:n($('fHrMin').value),hrMax:n($('fHrMax').value),
       createdAt:old?.createdAt||nowISO(),updatedAt:nowISO()
     };
     w.type=autoType?inferWorkoutType(w):$('fType').value;
@@ -933,6 +955,7 @@
   $('shareTodayChoice').onclick=()=>setShareChoice('today');
   $('copyShare').onclick=async()=>{const ok=await copyText(pendingShareText);if(ok)$('copyShare').textContent='Copied';setTimeout(()=>$('copyShare').textContent='Copy',1200);};
   $('systemShare').onclick=()=>shareText(pendingShareText);
+  $('fSource').addEventListener('change',()=>{updateSourceFields();updateTypePreview();});
   $('fBikeTime').addEventListener('input',()=>{updateCalcPreview();updateTypePreview();});$('fDistance').addEventListener('input',updateCalcPreview);$('fWatchTime').addEventListener('input',updateTypePreview);$('fEffort').addEventListener('change',updateTypePreview);$('fType').addEventListener('change',updateTypePreview);$('fNotes').addEventListener('input',updateTypePreview);
   $('search').addEventListener('input',renderWorkouts);$('sourceFilter').addEventListener('change',renderWorkouts);
   qsa('.tab').forEach(b=>b.onclick=()=>{
@@ -955,9 +978,9 @@
   };
   $('exportCsv').onclick=()=>{
     const sm=sessionMap();
-    const head=['Date','Session','Start time','Ride','Workout type','Effort','Notes','Bike time','Distance km','Bike kcal','Bike displayed speed','Calculated avg speed km/h','Watt','Bike pulse','RPM','RideLab load','Watch time','Watch active kcal','Watch total kcal','Watch avg HR','Watch HR min','Watch HR max','Time difference','Time difference %','Bike vs Watch active kcal difference','Active difference %','Bike vs Watch total kcal difference','Total difference %','Bike vs Watch avg HR difference','Discrepancy flag'];
+    const head=['Date','Session','Start time','Ride','Workout type','Effort','Notes','Workout time','Workout distance km','Workout calories','Avg speed km/h','RideLab load','Bike time','Bike distance km','Bike kcal','Bike displayed speed','Watt','Bike pulse','RPM','Watch time','Watch distance km','Watch active kcal','Watch total kcal','Watch avg HR','Watch HR min','Watch HR max','Time difference','Time difference %','Bike vs Watch active kcal difference','Active difference %','Bike vs Watch total kcal difference','Total difference %','Bike vs Watch avg HR difference','Discrepancy flag'];
     const rows=state.workouts.sort((a,b)=>a.date.localeCompare(b.date)).map(w=>{const r=rec(w);return [
-      w.date,sm[w.id],w.startTime,w.source,resolvedType(w),w.effortLabel||effortFromScore(w.rpe),w.notes,fmtDuration(w.bikeTimeSec),w.distanceKm,w.bikeKcal,w.displayedSpeed,avgSpeed(w),w.watt,w.pulse,w.rpm,trainingLoad(w),fmtDuration(w.watchTimeSec),w.activeKcal,w.totalKcal,w.avgHR,w.hrMin,w.hrMax,isNum(r.td)?fmtDuration(r.td):'',r.tp,r.ad,r.ap,r.tt,r.ttp,r.hd,r.level==='none'?'':r.level
+      w.date,sm[w.id],w.startTime,w.source,resolvedType(w),w.effortLabel||effortFromScore(w.rpe),w.notes,fmtDuration(sessionTime(w)),sessionDistance(w),sessionCalories(w),avgSpeed(w),trainingLoad(w),fmtDuration(w.bikeTimeSec),w.distanceKm,w.bikeKcal,w.displayedSpeed,w.watt,w.pulse,w.rpm,fmtDuration(w.watchTimeSec),w.watchDistanceKm,w.activeKcal,w.totalKcal,w.avgHR,w.hrMin,w.hrMax,isNum(r.td)?fmtDuration(r.td):'',r.tp,r.ad,r.ap,r.tt,r.ttp,r.hd,r.level==='none'?'':r.level
     ];});
     const csv=[head,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
     download('RideLab_workouts_'+localISO()+'.csv','\ufeff'+csv,'text/csv;charset=utf-8');
