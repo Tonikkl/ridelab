@@ -94,6 +94,8 @@
   .form-section{grid-column:1/-1;margin-top:8px;padding-top:14px;border-top:1px solid var(--line)}
   .form-section h3{margin:0 0 10px;color:#9ce8de;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
   #workoutForm.outdoor-mode .bike-only{display:none!important}
+  .outdoor-only{display:none!important}
+  #workoutForm.outdoor-mode .outdoor-only{display:flex!important}
   .helper{font-size:11px;color:var(--muted);line-height:1.45}
   .notice{padding:10px 12px;border-radius:12px;background:#101a2e;border:1px solid #2b3c5e;color:#b7c7e4;font-size:12px}
   .settings{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
@@ -364,12 +366,13 @@
 
         <div class="form-section"><h3 id="watchSectionTitle">Apple Watch</h3></div>
         <div class="field"><label>Total time</label><input class="input" id="fWatchTime" placeholder="30:55 or 1:05:20"></div>
-        <div class="field"><label>Distance km</label><input class="input" id="fWatchDistance" type="number" min="0" step="0.01"></div>
+        <div class="field outdoor-only"><label>Distance km</label><input class="input" id="fWatchDistance" type="number" min="0" step="0.01"></div>
         <div class="field"><label>Active kcal</label><input class="input" id="fActiveKcal" type="number" min="0" step="1"></div>
-        <div class="field"><label>Total kcal</label><input class="input" id="fTotalKcal" type="number" min="0" step="1"></div>
+        <div class="field"><label>Total kcal (reference)</label><input class="input" id="fTotalKcal" type="number" min="0" step="1"></div>
         <div class="field"><label>Average HR</label><input class="input" id="fAvgHr" type="number" min="0" step="1"></div>
         <div class="field"><label>HR minimum</label><input class="input" id="fHrMin" type="number" min="0" step="1"></div>
         <div class="field"><label>HR maximum</label><input class="input" id="fHrMax" type="number" min="0" step="1"></div>
+        <div class="field span4"><div class="helper">RideLab uses Apple Watch time and active calories for workout totals whenever entered. Outdoor rides also use Watch distance. Total calories are kept only as reference because they include resting energy.</div></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn" type="button" id="cancelModal">Cancel</button><button class="btn primary" type="submit">Save workout</button></div>
@@ -625,7 +628,7 @@
       const speed = bikeSecs>0 && distance!==null ? distance/(bikeSecs/3600) : null;
       let hrNum=0, hrDen=0;
       ws.forEach(w=>{
-        const wt=isNum(w.watchTimeSec)?Number(w.watchTimeSec):null;
+        const wt=sessionTime(w);
         if(isNum(w.avgHR)&&wt>0){hrNum+=Number(w.avgHR)*wt;hrDen+=wt;}
       });
       return {date,status:'Training',rest:false,workouts:ws.length,bikeSecs,distance,calories,bikeKcal,active,total,load,speed,avgHR:hrDen?hrNum/hrDen:null};
@@ -687,7 +690,7 @@
     const cw=currentWeekData();
     $('todayWeekSummary').innerHTML=`<div class="box"><div class="k">Workouts</div><div class="v">${cw.ws}</div></div><div class="box"><div class="k">Time</div><div class="v">${isNum(cw.bikeSecs)?Math.round(cw.bikeSecs/60):0} min</div></div><div class="box"><div class="k">Distance</div><div class="v">${isNum(cw.dist)?cw.dist.toFixed(1):'0.0'} km</div></div>`;
     const last=[...state.workouts].sort((a,b)=>b.date.localeCompare(a.date)||(b.startTime||'').localeCompare(a.startTime||''))[0];
-    $('lastWorkoutSummary').innerHTML=last?`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div><b style="color:var(--text)">${esc(resolvedType(last))}</b> · ${effortHtml(last.effortLabel||effortFromScore(last.rpe))}<div style="margin-top:7px">${fmtDate(last.date)} · ${fmtDuration(last.bikeTimeSec)} · ${val(last.distanceKm,2,' km')} · ${val(last.bikeKcal)} kcal</div></div><button class="iconbtn" onclick="RideLab.shareWorkout('${last.id}')">Share</button></div>`:'No workouts yet.';
+    $('lastWorkoutSummary').innerHTML=last?`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div><b style="color:var(--text)">${esc(resolvedType(last))}</b> · ${effortHtml(last.effortLabel||effortFromScore(last.rpe))}<div style="margin-top:7px">${fmtDate(last.date)} · ${fmtDuration(sessionTime(last))} · ${val(sessionDistance(last),2,' km')} · ${val(sessionCalories(last))} kcal</div></div><button class="iconbtn" onclick="RideLab.shareWorkout('${last.id}')">Share</button></div>`:'No workouts yet.';
   }
 
   function renderWorkouts(){
